@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ResourceDetails>
+   <ServerName/>
+   <LauncherName/>
+   <ExternalBrowser/>
+   <UseStartPage>false</UseStartPage>
+   <StartPage useextension="false"/>
+   <Mappings/>
+
+   <VariableMappings>
+      <VariableName>binder</VariableName>
+      <MappedTo>coldbox.system.ioc.config.Binder</MappedTo>
+      <VariableName>flash</VariableName>
+      <MappedTo>coldbox.system.web.flash.AbstractFlashScope</MappedTo>
+      <VariableName>logbox</VariableName>
+      <MappedTo>coldbox.system.logging.LogBox</MappedTo>
+      <VariableName>event</VariableName>
+      <MappedTo>coldbox.system.web.context.RequestContext</MappedTo>
+      <VariableName>html</VariableName>
+      <MappedTo>coldbox.system.plugins.HTMLHelper</MappedTo>
+      <VariableName>wirebox</VariableName>
+      <MappedTo>coldbox.system.ioc.Injector</MappedTo>
+      <VariableName>cachebox</VariableName>
+      <MappedTo>coldbox.system.cache.CacheFactory</MappedTo>
+      <VariableName>controller</VariableName>
+      <MappedTo>coldbox.system.web.Controller</MappedTo>
+      <VariableName>log</VariableName>
+      <MappedTo>coldbox.system.logging.log</MappedTo>
+   </VariableMappings>
+
+   <DictionaryVersion>ColdFusion10</DictionaryVersion>
+   <CFCMappings/>
+</ResourceDetails>
