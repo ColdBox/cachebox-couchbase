@@ -16,6 +16,7 @@ local.properties
 .settings/
 .loadpath
 /WEB-INF/*
+/logs/*
 
 # External tool builders
 .externalToolBuilders/
