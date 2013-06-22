@@ -9,8 +9,6 @@
 		// Stats are represented as a hashmap that use a java.net.InetSocketAddress as the key.  However, Railo wants to keep autoconverting the 
 		// keys to a string which is keeping me from being able to use the map[key] syntax.  Instead get an interator of the values and convert to array
 		variables.instance.cacheStats = arguments.cacheProvider.getCouchBaseClient().getStats().values().toArray();
-		writeDump(arguments.cacheProvider.getCouchBaseClient().getKeyStats(1));abort;
-
 		return this;
 	}
 

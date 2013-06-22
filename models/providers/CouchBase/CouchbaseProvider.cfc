@@ -122,6 +122,34 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     any function getCacheFactory() output="false" {
 		return instance.cacheFactory;
 	}
+		
+	/**
+    * set the associated cache factory
+    */
+    void function setCacheFactory(required any cacheFactory) output="false" {
+		instance.cacheFactory = arguments.cacheFactory;
+	}
+		
+	/**
+    * set the CouchBase Client
+    */
+    void function setCouchBaseClient(required any CouchBaseClient) {
+		instance.CouchBaseClient = arguments.CouchBaseClient;
+	}
+		
+	/**
+    * get the CouchBase Client
+    */
+    any function getCouchBaseClient() {
+		return instance.CouchBaseClient;
+	}
+				
+	/**
+    * get the JavaLoader
+    */
+    any function getJavaLoader() {
+		return instance.JavaLoader;
+	}
 	
 	/**
 	* Validate the incoming configuration and make necessary defaults
@@ -202,7 +230,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			try{
 			
 				// Load up the jars from their path
-				instance.JavaLoader.init([
+				getJavaLoader().init([
 					'#config.jarPath#commons-codec-1.5.jar',
 					'#config.jarPath#couchbase-client-1.1.6.jar',
 					'#config.jarPath#httpcore-4.1.1.jar',
@@ -225,7 +253,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 				}
 				
 				// Create a connection factory builder
-				CouchbaseConnectionFactoryBuilder = instance.JavaLoader.create("com.couchbase.client.CouchbaseConnectionFactoryBuilder").init();
+				CouchbaseConnectionFactoryBuilder = getJavaLoader().create("com.couchbase.client.CouchbaseConnectionFactoryBuilder").init();
 				
 				// Set out timeoutes into the factory builder
 		        CouchbaseConnectionFactoryBuilder.setOpQueueMaxBlockTime(config.opQueueMaxBlockTime);
@@ -236,7 +264,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 				CouchbaseConnectionFactory = CouchbaseConnectionFactoryBuilder.buildCouchbaseConnection(URIs, config.bucket, config.password);
 		        				
 		        // Create actual client class.  
-				CouchBaseClientClass = instance.JavaLoader.create("com.couchbase.client.CouchbaseClient");
+				CouchBaseClientClass = getJavaLoader().create("com.couchbase.client.CouchbaseClient");
 			}
 			catch(any e) {
 				e.printStackTrace();
@@ -295,6 +323,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * clear the cache stats: 
     */
     void function clearStatistics() output="false" {
+    	// Not 
 	}
 	
 	/**
@@ -324,8 +353,12 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	*/
 	any function getStoreMetadataKeyMap() output="false"{
 		var keyMap = {
-				timeout = "timespan", hits = "hitcount", lastAccessTimeout = "idleTime",
-				created = "createdtime", LastAccessed = "lasthit"
+				LastAccessed = "LastAccessed",
+				isExpired = "isExpired",
+				timeout = "timeout",
+				lastAccessTimeout = "NOT_SUPPORTED",
+				hits = "NOT_SUPPORTED",
+				created = "NOT_SUPPORTED"
 			};
 		return keymap;
 	}
@@ -335,13 +368,17 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     any function getKeys() output="false" {
     	
-    	// Find a way to automatically create this docName and view
-    	local.allView = getCouchBaseClient().getView('test','all');
-    	local.query = instance.JavaLoader.create("com.couchbase.client.protocol.views.Query").init(); 
+    	ensureViewExists("allKeys");
+    	    	
+    	local.allView = getCouchBaseClient().getView('CacheBox_allKeys','allKeys');
+    	local.query = getJavaLoader().create("com.couchbase.client.protocol.views.Query").init(); 
     	local.response = getCouchBaseClient().query(local.allView,local.query);
     	    	
-    	// Should probably check these each time
-    	//local.response.getErrors()
+    	// Were there errors
+    	if(arrayLen(local.response.getErrors())){
+    		// This will throw
+    		handleRowErrors('There was an error executing the view allKeys',local.response.getErrors());
+    	}
     	
     	local.iterator = local.response.iterator();
     	local.results = [];
@@ -354,13 +391,86 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	}
 	
 	/**
+    * Deal with errors that came back from the cluster
+    * rowErrors is an array of com.couchbase.client.protocol.views.RowError
+    */
+    void function handleRowErrors(message, rowErrors) {
+    	local.detail = '';
+    	for(local.error in arguments.rowErrors) {
+    		local.detail &= local.error.getFrom();
+    		local.detail &= local.error.getReason();
+    	}
+    	Throw(message=arguments.message, detail=local.detail);
+    }
+    
+	/**
+    * Ensure that a view exists on the cluster
+    * http://tugdualgrall.blogspot.com/2012/12/couchbase-101-create-views-mapreduce.html
+    */
+    void function ensureViewExists(viewName) {
+    	
+    	local.designDocumentName = 'CacheBox_' & arguments.viewName;
+    	
+    	// CouchBase doesn't provide a way to check for DesignDocuments, so try to retreive it and catch the error.
+    	// This should only error the first time and will run successfully every time after.
+    	try {
+    		getCouchBaseClient().getDesignDocument(local.designDocumentName);	
+    	}
+    	catch('com.couchbase.client.protocol.views.InvalidViewException' e) {
+    		
+    		// Create it    		
+			local.designDocument = getJavaLoader().create("com.couchbase.client.protocol.views.DesignDocument").init(local.designDocumentName);
+
+			// If we start using other views, this function will need to be dynamic based on the view.
+			local.mapFunction = '
+			function (doc, meta) {
+			  emit(meta.id, null);
+			}';
+			
+			// If using reduce function, pass it as third parameter.
+			local.viewDesign = getJavaLoader().create("com.couchbase.client.protocol.views.ViewDesign").init(arguments.viewName,local.mapFunction);
+			local.designDocument.getViews().add(local.viewDesign);
+			getCouchBaseClient().createDesignDoc(local.designDocument);
+    		
+    		return;
+    	}
+    	
+    }
+	
+	/**
     * get an object's cached metadata
     */
     any function getCachedObjectMetadata(required any objectKey) output="false" {
-    	return {
-				timespan = 0, hitcount = 1, idleTime = 2,
-				 createdtime = 3, lasthit = 4 
+    	
+    	local.keyStats = {
+				timeout = "",
+				LastAccessed = "",
+				timeExpires = "",
+				isExpired = 0,
+				NOT_SUPPORTED = ""
 			};
+    	
+    	// Get stats for this key
+    	local.stats = getCouchBaseClient().getKeyStats(objectKey).get();
+    	if(structKeyExists(local,"stats")) {
+    		
+    		local.key_exptime =  iif(structKeyExists(local.stats,"key_exptime"), "local.stats['key_exptime']",  0);
+    		local.key_last_modification_time =  iif(structKeyExists(local.stats,"key_last_modification_time"), "local.stats['key_last_modification_time']",  0);
+    		
+    		// These are opoch times.  Seconds since 1/1/1970 UTC
+    		if(val(local.key_exptime) && val(local.key_last_modification_time)) {
+    			// Time is expiration minus last modified (seconds) / 60 for minutes
+    			local.keyStats.timeout = round((local.key_exptime - local.key_last_modification_time)/60);
+    			// last access and expire time is epoch seconds added to 1/1/1970 and converted to local time  
+    			local.keyStats.timeExpires = DateAdd("s", local.key_exptime ,DateConvert("utc2Local", "January 1 1970 00:00"));
+    			local.keyStats.LastAccessed = DateAdd("s", local.key_last_modification_time ,DateConvert("utc2Local", "January 1 1970 00:00")); 
+    			// Key is expired if expire time is past
+    			local.keyStats.isExpired = local.keyStats.timeExpires < now();
+    		}
+			
+    	}
+    	
+    	return local.keyStats;
 	}
 	
 	/**
@@ -407,7 +517,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * get an item silently from cache, no stats advised: Stats not available on Couchbase
     */
     any function getQuiet(required any objectKey) output="false" {
-		// not implemented by Couchbase yet
+		// "quiet" "not implemented by Couchbase yet
 		return get(argumentCollection=arguments);
 	}
 	
@@ -415,7 +525,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * Not implemented by this cache
     */
     any function isExpired(required any objectKey) output="false" {
-		return false;
+		return getCachedObjectMetadata(arguments.objectKey).isExpired;
 	}
 	 
 	/**
@@ -455,7 +565,6 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		};		
 		getEventManager().processState("afterCacheElementInsert",iData);
 		
-		return true;
 	}	
 	
 	/**
@@ -467,6 +576,8 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 						  any lastAccessTimeout="0", // Not used for this provider
 						  any extra) output="false" {
 
+		// "quiet" "not implemented by Couchbase yet
+		
 		if(!isSimpleValue(arguments.object)) {
 			arguments.object = this.CONVERTED_FLAG & instance.converter.serializeObject( arguments.object );
 		}
@@ -484,7 +595,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		catch(any e) {
 			
 			if( isTimeoutException(e) && getConfiguration().ignoreCouchBaseTimeouts) {
-				return false;
+				return;
 			}
 			
 			// For any other type of exception, rethrow.
@@ -552,9 +663,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	* Clear by key snippet
 	*/
 	void function clearByKeySnippet(required keySnippet, regex=false, async=false) output="false" {
-		/*
-		Not possible in Couchbase
-		
+
 		var threadName = "clearByKeySnippet_#replace(instance.uuidHelper.randomUUID(),"-","","all")#";
 		
 		// Async? IF so, do checks
@@ -566,42 +675,21 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		else{
 			instance.elementCleaner.clearByKeySnippet(arguments.keySnippet,arguments.regex);
 		}
-		*/
+		
 	}
 	
 	/**
     * not implemented by cache
     */
     void function expireAll() output="false" { 
-		// Not implemented by this cache
+		clearAll();
 	}
 	
 	/**
     * not implemented by cache
     */
     void function expireObject(required any objectKey) output="false" {
-		//not implemented
-	}
-		
-	/**
-    * set the associated cache factory
-    */
-    void function setCacheFactory(required any cacheFactory) output="false" {
-		instance.cacheFactory = arguments.cacheFactory;
-	}
-		
-	/**
-    * set the CouchBase Client
-    */
-    void function setCouchBaseClient(required any CouchBaseClient) {
-		instance.CouchBaseClient = arguments.CouchBaseClient;
-	}
-		
-	/**
-    * get the CouchBase Client
-    */
-    any function getCouchBaseClient() {
-		return instance.CouchBaseClient;
+		clear(arguments.objectKey);
 	}
 
 }

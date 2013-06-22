@@ -1,19 +1,21 @@
 <cfoutput>
 
 <h1>CouchBase CacheBox Provider Test</h1>
-	<cfscript>
+
+<cfset cb = getModel(dsl="cacheBox:couchBase")>
+
+<!---	<cfscript>
 			
 		testData = {
 			string = "foobar",
 			number = 3.14,
-			JSON = '{"foo":"bar","loo":5,"subStruct":{"goo":"smar"},"subArray":[1,2,3,4,5]}',
+			//JSON = '{"foo":"bar","loo":5,"subStruct":{"goo":"smar"},"subArray":[1,2,3,4,5]}',
 			array = ['a','b','c','d','e'],
 			struct = {"foo":"bar","loo":5,"subStruct":{"goo":"smar"},"subArray":[1,2,3,4,5]},
 			XML = XMLParse('<root><item attr1="value1" attr2="value3" /><item attr1="value1" attr2="value3" /><item attr1="value1" attr2="value3" /></root>'),
 			CFC = event
 		};
 		
-		cb = getModel(dsl="cacheBox:couchBase");
 		i=0;
 		timer type="inline" label="looping sets" {
 			while(++i<10) {
@@ -34,18 +36,27 @@
 		//cb.clearAll();
 		
 		for(key in testData) {
-			cb.set(key,testData[key]);			
+			cb.set(key,testData[key]);
 		}
-							
+
 	</cfscript>
 
-<!---	<cfloop collection="#testData#" item="key">
+	<cfloop collection="#testData#" item="key">
 		#key#: <cfdump expand="false" var="#cb.get(key)#">
-	</cfloop>--->
+	</cfloop>
 
-	<!---<cfdump var="#cb.getKeys()#">--->
+	<!--- This is asynch no matter what you set the asynch flag to --->
+	<cfset cb.clearByKeySnippet(keySnippet='^c', regex=true)>
+	<br><br>
 	
-	<cfdump var="#cb.getStats()#">
+	<!--- In theory, this won't exist, but based on the asynchrnosity above, it's a toss up --->
+	CFC: <cfdump expand="false" var="#cb.get('CFC')#">
+--->
+	<cfdump var="#cb.getKeys()#">
+	
+	<!---<cfdump var="#cb.getStats()#">--->
+			
+<!---	<cfdump var="#cb.getCouchbaseClient().getKeyStats('STRING').get()#">--->
 	
 		
 </cfoutput>
