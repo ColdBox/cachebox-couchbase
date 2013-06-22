@@ -50,11 +50,17 @@
 	                }
 	            },
 			   couchBase = {
-			        provider="models.providers.CouchBaseColdBoxProvider",
+			        provider="models.providers.CouchBase.CouchBaseColdBoxProvider",
 			        properties = {
+	                    objectDefaultTimeout = 15,
+	                    opQueueMaxBlockTime = 5000,
+				        opTimeout = 5000,
+				        timeoutExceptionThreshold = 5000,
+				        ignoreCouchBaseTimeouts = true,				
 			        	bucket="test",
 			        	password="pa$$",
-			        	servers="localhost:8091"
+			        	servers="127.0.0.1:8091",
+			        	jarPath=GetDirectoryFromPath(GetCurrentTemplatePath()) & "../models/providers/CouchBase/jars/"
 			        }
 				}
 			},

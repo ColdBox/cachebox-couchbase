@@ -16,26 +16,13 @@
 			handlersIndexAutoReload = false,
 			
 			//Implicit Events
-			defaultEvent			= "Samples.index",
+			defaultEvent			= "main.index",
 				
 			//Application Aspects
-			handlerCaching 			= true,
-			eventCaching			= true
+			handlerCaching 			= false,
+			eventCaching			= false
 		};
 	
-		// custom settings
-		settings = {
-			amazonURL = "http://www.amazon.com/o/registry/7DPYG3RZG3AF",
-			coldboxURL = "http://coldbox.org",
-			blogURL = "http://blog.coldbox.org",
-			coldboxAPIURl = "http://coldbox.org/api",
-			trackerURL = "http://coldbox.assembla.com",
-			coldboxReaderApp = "applications/ColdBoxReader",
-			cfcGeneratorApp = "applications/cfcGenerator",
-			TransferApp = "applications/TransferSample",
-			TransferApp2 = "applications/TransferSample2",
-			SecurityApp = "applications/securitysample"
-		};
 		
 		//Layout Settings
 		layoutSettings = {
@@ -46,14 +33,6 @@
 		interceptors = [
 			{class="coldbox.system.interceptors.SES"}
 		];
-		
-		
-		//i18n & Localization
-		i18n = {
-			defaultResourceBundle = "includes/i18n/main",
-			defaultLocale = "en_US",
-			localeStorage = "cookie"
-		};
 		
 		//LogBox DSL
 		logBox = {

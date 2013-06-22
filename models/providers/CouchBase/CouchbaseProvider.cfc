@@ -12,6 +12,11 @@ cluster of Couchbase nodes for a distributed and highly scalable cache store.
 */
 component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 
+	// This flag will be added to the beginning of any complex value that was serialized 
+	// so the provider knows to deserialize it.  There is overhead in serialization, so we
+	// will be avoiding it where possible with any simple values that are stored.
+	this.CONVERTED_FLAG = '___CONVERTED___';
+
 	/**
     * Constructor
     */
@@ -43,17 +48,27 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			// our UUID creation helper
 			uuidHelper			= createobject("java", "java.util.UUID"),
 			// Java URI class
-			URIClass = createObject("java", "java.net.URI"),
+			URIClass 			= createObject("java", "java.net.URI"),
 			// Java URI class
-			TimeUnitClass = createObject("java", "java.util.concurrent.TimeUnit")			
+			TimeUnitClass 		= createObject("java", "java.util.concurrent.TimeUnit"),
+			// For serialization of complex values
+			converter			= createObject("component","coldbox.system.core.conversion.ObjectMarshaller").init(),
+			// JavaLoader will be used to load the Jars.  Wait to init until the configure() method
+			JavaLoader			= CreateObject("component","coldbox.system.core.javaloader.JavaLoader")
 		};
 		
 		// Provider Property Defaults
 		instance.DEFAULTS = {
+			objectDefaultTimeout = 30,
+            opQueueMaxBlockTime = 5000,
+	        opTimeout = 5000,
+	        timeoutExceptionThreshold = 5000,
+	        ignoreCouchBaseTimeouts = true,
 			bucket = "default",
 			servers = "localhost:8091", // This can be an array
 			username = "",
-			password = ""
+			password = "",
+			jarPath = GetDirectoryFromPath(GetCurrentTemplatePath()) & "jars/"
 		};		
 		
 		return this;
@@ -139,7 +154,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			servers = listToArray(servers);
 		}
 				
-		// Massage server URLs to be PROTOCOL://host:port/pools/
+		// Massage server URLs to be "PROTOCOL://host:port/pools/"
 		while(++i <= arrayLen(servers)) {
 			
 			// Add protocol if neccessar
@@ -166,39 +181,76 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * configure the cache for operation
     */
     void function configure() output="false" {
-		var config 	= getConfiguration();
+		var config 	= '';
 		var props	= [];
 		var URIs 	= [];
     	var i = 0;
     	var CouchBaseClientClass = '';
-				
+    	var CouchbaseConnectionFactoryBuilder = '';
+    	var CouchbaseConnectionFactory = '';
+			
+		// Validate the configuration
+		validateConfiguration();
+		config = getConfiguration();
+		
+		// Prepare the logger
+		instance.logger = getCacheFactory().getLogBox().getLogger( this );
+		instance.logger.debug("Starting up Couchbaseprovider Cache: #getName()# with configuration: #config.toString()#");
+			
 		lock name="Couchbaseprovider.config.#instance.cacheID#" type="exclusive" throwontimeout="true" timeout="20"{
 		
-			// Prepare the logger
-			instance.logger = getCacheFactory().getLogBox().getLogger( this );
-			instance.logger.debug("Starting up Couchbaseprovider Cache: #getName()# with configuration: #config.toString()#");
-			
-			// Validate the configuration
-			validateConfiguration();
-			var cacheConfig = getConfiguration();
-			
-			while(++i <= arrayLen(config.servers)) {
-				arrayAppend(URIs,instance.URIClass.create(config.servers[i]));					
-			}
-			
 			try{
-				CouchBaseClientClass = createObject("java","com.couchbase.client.CouchbaseClient");
+			
+				// Load up the jars from their path
+				instance.JavaLoader.init([
+					'#config.jarPath#commons-codec-1.5.jar',
+					'#config.jarPath#couchbase-client-1.1.6.jar',
+					'#config.jarPath#httpcore-4.1.1.jar',
+					'#config.jarPath#httpcore-nio-4.1.1.jar',
+					'#config.jarPath#jettison-1.1.jar',
+					'#config.jarPath#netty-3.5.5.Final.jar',
+					'#config.jarPath#spymemcached-2.8.12.jar'
+				]);
 			}
 			catch(any e) {
 				e.printStackTrace();
-				throw(message='There was an error creating the CouchbaseClient library', detail=e.message)
-			}	
+				throw(message='Error Loading CouchBase Client Jars', detail=e.message & " " & e.detail)
+			}		
+			
 			try{
-				instance.CouchBaseClient = CouchBaseClientClass.init(URIs, config.bucket, config.password);
+			
+				// Prepare list of servers
+				while(++i <= arrayLen(config.servers)) {
+					arrayAppend(URIs,instance.URIClass.create(config.servers[i]));					
+				}
+				
+				// Create a connection factory builder
+				CouchbaseConnectionFactoryBuilder = instance.JavaLoader.create("com.couchbase.client.CouchbaseConnectionFactoryBuilder").init();
+				
+				// Set out timeoutes into the factory builder
+		        CouchbaseConnectionFactoryBuilder.setOpQueueMaxBlockTime(config.opQueueMaxBlockTime);
+		        CouchbaseConnectionFactoryBuilder.setOpTimeout(config.opTimeout);
+		        CouchbaseConnectionFactoryBuilder.setTimeoutExceptionThreshold(config.timeoutExceptionThreshold);        
+		        
+		        // Build our connection factory with the defaults we set above
+				CouchbaseConnectionFactory = CouchbaseConnectionFactoryBuilder.buildCouchbaseConnection(URIs, config.bucket, config.password);
+		        				
+		        // Create actual client class.  
+				CouchBaseClientClass = instance.JavaLoader.create("com.couchbase.client.CouchbaseClient");
 			}
 			catch(any e) {
 				e.printStackTrace();
-				throw(message='There was an error connecting to the Couchbase server. Config: #serializeJSON(config)#', detail=e.message)
+				throw(message='There was an error creating the CouchbaseClient library', detail=e.message & " " & e.detail)
+			}
+			
+			try{
+				// Instantiate the client with out connection factory.  This is in a separate try catch to help differentiate between
+				// Java classpath issues versus CouchBase connection issues.  
+				setCouchBaseClient(CouchBaseClientClass.init(CouchbaseConnectionFactory));
+			}
+			catch(any e) {
+				e.printStackTrace();
+				throw(message='There was an error connecting to the Couchbase server. Config: #serializeJSON(config)#', detail=e.message & " " & e.detail)
 			}
 			
 			// enabled cache
@@ -213,7 +265,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * shutdown the cache
     */
     void function shutdown() output="false" {
-    	instance.CouchBaseClient.shutDown(5,instance.TimeUnitClass.SECONDS);
+    	getCouchBaseClient().shutDown(5,instance.TimeUnitClass.SECONDS);
 		instance.logger.info("CouchbaseProvider Cache: #getName()# has been shutdown.");
 	}
 	
@@ -236,7 +288,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	* @colddoc:generic coldbox.system.cache.util.ICacheStats
 	*/
 	any function getStats() output="false" {
-		//return createObject("component", "coldbox.system.cache.providers.Couchbase-lib.CouchbaseStats").init( this );		
+		return createObject("component", "CouchbaseStats").init( this );		
 	}
 	
 	/**
@@ -255,11 +307,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	/**
     * get the cache's metadata report
     */
-    any function getStoreMetadataReport() output="false" { 
-    	return structNew();
-    	
-    	/* NOT IMPLEMENTED YET
-	    	
+    any function getStoreMetadataReport() output="false" {	
 			var md 		= {};
 			var keys 	= getKeys();
 			var item	= "";
@@ -269,8 +317,6 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			}
 			
 			return md;
-			
-		*/
 	}
 	
 	/**
@@ -288,27 +334,73 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * get all the keys in this provider
     */
     any function getKeys() output="false" {
-    	// Figure this out using TAP
-		return [];
+    	
+    	// Find a way to automatically create this docName and view
+    	local.allView = getCouchBaseClient().getView('test','all');
+    	local.query = instance.JavaLoader.create("com.couchbase.client.protocol.views.Query").init(); 
+    	local.response = getCouchBaseClient().query(local.allView,local.query);
+    	    	
+    	// Should probably check these each time
+    	//local.response.getErrors()
+    	
+    	local.iterator = local.response.iterator();
+    	local.results = [];
+    	
+    	while(local.iterator.hasNext()) {
+    		arrayAppend(local.results,local.iterator.next().getID());
+    	}
+    	
+    	return local.results;
 	}
 	
 	/**
     * get an object's cached metadata
     */
     any function getCachedObjectMetadata(required any objectKey) output="false" {
-    	return structNew();
-    	
-    	/* NOT IMPLEMENTED YET
-    	
-			return cacheGetMetadata( arguments.objectKey, getConfiguration().cacheName );
-		*/
+    	return {
+				timespan = 0, hitcount = 1, idleTime = 2,
+				 createdtime = 3, lasthit = 4 
+			};
 	}
 	
 	/**
     * get an item from cache
     */
     any function get(required any objectKey) output="false" {
-		return instance.CouchBaseClient.get(arguments.objectKey);
+    	try {
+    		// local.object will always come back as a string
+			local.object = getCouchBaseClient().get(arguments.objectKey);
+			
+			// item is no longer in cache
+			if(!structKeyExists(local,"object")) {
+				return;
+			}
+			
+			local.convertedFlagLength = len(this.CONVERTED_FLAG);
+			// If the stored value had been converted
+			if(len(local.object) > local.convertedFlagLength && left(local.object,local.convertedFlagLength) == this.CONVERTED_FLAG) {
+				// Strip out the converted flag and deserialize.
+				local.object = mid(local.object,local.convertedFlagLength+1,len(local.object)-local.convertedFlagLength);
+				return instance.converter.deserializeObject(binaryObject=local.object);
+			}
+			
+			// If was a simple value
+			return local.object;
+		}
+		catch(any e) {
+			
+			if( isTimeoutException(e) && getConfiguration().ignoreCouchBaseTimeouts) {
+				// Return nothing as though it wasn't even found in the cache
+				return;
+			}
+			
+			// For any other type of exception, rethrow.
+			rethrow;
+		}
+	}
+	
+    private boolean function isTimeoutException(required any exception) {
+    	return (exception.type == 'net.spy.memcached.OperationTimeoutException' || exception.message == 'Exception waiting for value' || exception.message == 'Interrupted waiting for value');
 	}
 	
 	/**
@@ -347,8 +439,8 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     any function set(required any objectKey,
 					 required any object,
-					 any timeout="0",
-					 any lastAccessTimeout="0",
+					 any timeout=instance.configuration.objectDefaultTimeout,
+					 any lastAccessTimeout="0", // Not used for this provider
 					 any extra) output="false" {
 		
 		setQuiet(argumentCollection=arguments);
@@ -371,26 +463,40 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     any function setQuiet(required any objectKey,
 						  required any object,
-						  any timeout="0",
-						  any lastAccessTimeout="0",
+						  any timeout=instance.configuration.objectDefaultTimeout,
+						  any lastAccessTimeout="0", // Not used for this provider
 						  any extra) output="false" {
 
-		// You can pass in a net.spy.memcached.transcoders.Transcoder to override the default
-		if(structKeyExists(arguments,'extra') && structKeyExists(arguments.extra,'transcoder')) {
-			 instance.CouchBaseClient.set(arguments.objectKey, arguments.timeout*60, arguments.object,extra.transcoder);
-		} else {
-			instance.CouchBaseClient.set(arguments.objectKey, arguments.timeout*60, arguments.object);
+		if(!isSimpleValue(arguments.object)) {
+			arguments.object = this.CONVERTED_FLAG & instance.converter.serializeObject( arguments.object );
 		}
+
+    	try {
+    		
+			// You can pass in a net.spy.memcached.transcoders.Transcoder to override the default
+			if(structKeyExists(arguments,'extra') && structKeyExists(arguments.extra,'transcoder')) {
+				 getCouchBaseClient().set(javaCast("string",arguments.objectKey), javaCast("int",arguments.timeout*60), arguments.object,extra.transcoder);
+			} else {
+				getCouchBaseClient().set(javaCast("string",arguments.objectKey), javaCast("int",arguments.timeout*60), arguments.object);
+			}
 		
-		return true;
+		}
+		catch(any e) {
+			
+			if( isTimeoutException(e) && getConfiguration().ignoreCouchBaseTimeouts) {
+				return false;
+			}
+			
+			// For any other type of exception, rethrow.
+			rethrow;
+		}
 	}	
 		
 	/**
     * get cache size
     */
     any function getSize() output="false" {
-    	// NOT IMPLEMENTED YET
-		return 0;
+		return getStats().getObjectCount();
 	}
 	
 	/**
@@ -404,18 +510,16 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * clear all elements from cache
     */
     void function clearAll() output="false" {
-		/*
-		Couchbase doesn't allow for this
-		I'm not broadcasting the interception point since I didn't
-		actually clear anything
-		 
+		
+		getCouchBaseClient().flush();		
+				 
 		var iData = {
 			cache	= this
 		};
 		
 		// notify listeners		
 		getEventManager().processState("afterCacheClearAll",iData);
-		*/
+		
 	}
 	
 	/**
@@ -423,7 +527,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     any function clear(required any objectKey) output="false" {
 		
-		instance.CouchbaseClient.delete(arguments.objectKey);
+		getCouchBaseClient().delete(arguments.objectKey);
 		
 		//ColdBox events
 		var iData = { 
@@ -484,6 +588,20 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     void function setCacheFactory(required any cacheFactory) output="false" {
 		instance.cacheFactory = arguments.cacheFactory;
+	}
+		
+	/**
+    * set the CouchBase Client
+    */
+    void function setCouchBaseClient(required any CouchBaseClient) {
+		instance.CouchBaseClient = arguments.CouchBaseClient;
+	}
+		
+	/**
+    * get the CouchBase Client
+    */
+    any function getCouchBaseClient() {
+		return instance.CouchBaseClient;
 	}
 
 }
