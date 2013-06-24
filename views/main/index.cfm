@@ -4,7 +4,7 @@
 
 <cfset cb = getModel(dsl="cacheBox:couchBase")>
 
-<!---	<cfscript>
+	<cfscript>
 			
 		testData = {
 			string = "foobar",
@@ -18,14 +18,14 @@
 		
 		i=0;
 		timer type="inline" label="looping sets" {
-			while(++i<10) {
+			while(++i<100) {
 				cb.set(i,i);
 			}
 		}
 		writeOutput('<br><br><br>');		
 		i=0;
 		timer type="inline" label="looping gets" {
-			while(++i<10) {
+			while(++i<100) {
 				cb.get(i);
 			}
 		}
@@ -37,7 +37,7 @@
 		
 		for(key in testData) {
 			cb.set(key,testData[key]);
-		}
+		}		
 
 	</cfscript>
 
@@ -51,12 +51,8 @@
 	
 	<!--- In theory, this won't exist, but based on the asynchrnosity above, it's a toss up --->
 	CFC: <cfdump expand="false" var="#cb.get('CFC')#">
---->
-	<cfdump var="#cb.getKeys()#">
-	
-	<!---<cfdump var="#cb.getStats()#">--->
-			
-<!---	<cfdump var="#cb.getCouchbaseClient().getKeyStats('STRING').get()#">--->
-	
+
+	<!---<cfdump var="#cb.getKeys()#">--->
+					
 		
 </cfoutput>

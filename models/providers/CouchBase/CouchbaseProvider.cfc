@@ -369,11 +369,19 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     any function getKeys() output="false" {
     	
     	ensureViewExists("allKeys");
-    	    	
-    	local.allView = getCouchBaseClient().getView('CacheBox_allKeys','allKeys');
-    	local.query = getJavaLoader().create("com.couchbase.client.protocol.views.Query").init(); 
-    	local.response = getCouchBaseClient().query(local.allView,local.query);
-    	    	
+    	
+		// The only reason I'm try/catching this is that the Java exception has an object for the 'type
+		// which makes ColdBox's error handing blow up since it tries to use the type as a string.
+    	try{
+	    	local.allView = getCouchBaseClient().getView('CacheBox_allKeys','allKeys');
+	    	local.query = getJavaLoader().create("com.couchbase.client.protocol.views.Query").init(); 
+	    	local.response = getCouchBaseClient().query(local.allView,local.query);
+		}
+		catch(any e) {
+			// Rethrow the error
+			throw(message=e.message, detail=e.detail, type="couchbase.view.exception");
+		}
+		
     	// Were there errors
     	if(arrayLen(local.response.getErrors())){
     		// This will throw
