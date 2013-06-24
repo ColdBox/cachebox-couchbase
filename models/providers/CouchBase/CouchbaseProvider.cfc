@@ -384,7 +384,9 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		
     	// Were there errors
     	if(arrayLen(local.response.getErrors())){
-    		// This will throw
+    		// This will log only and not throw an exception
+    		// PLEASE NOTE, the response received may not include all documents if one or more nodes are offline 
+	    	// and not yet failed over.  CouchBase basically sends back what docs it _can_ access and ignores the other nodes.
     		handleRowErrors('There was an error executing the view allKeys',local.response.getErrors());
     	}
     	
@@ -408,7 +410,11 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     		local.detail &= local.error.getFrom();
     		local.detail &= local.error.getReason();
     	}
-    	Throw(message=arguments.message, detail=local.detail);
+    	
+    	// It appears that there is still a useful result even if errors were returned so
+    	// we'll just log it and not interrupt the request by throwing.  
+    	instance.logger.warn(arguments.message, local.detail);
+    	//Throw(message=arguments.message, detail=local.detail);
     }
     
 	/**
@@ -630,6 +636,9 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     void function clearAll() output="false" {
 		
+		// If flush is not enabled for this bucket, no error will be thrown.  The call will simply return and nothing will happen.
+		// Be very careful calling this.  It is an intensive asynch operation and the cache won't receive any new items until the flush
+		// is finished which might take a few minutes.
 		getCouchBaseClient().flush();		
 				 
 		var iData = {
