@@ -45,9 +45,6 @@ component serializable="false" extends="CouchbaseProvider" implements="coldbox.s
 	* Clear all events
 	*/
 	void function clearAllEvents(async=false) output=false{
-		/*
-		Not possible
-		
 		var threadName = "clearAllEvents_#replace(instance.uuidHelper.randomUUID(),"-","","all")#";
 		
 		// Async? IF so, do checks
@@ -59,16 +56,13 @@ component serializable="false" extends="CouchbaseProvider" implements="coldbox.s
 		else{
 			instance.elementCleaner.clearAllEvents();
 		}
-		*/		
+			
 	}
 	
 	/**
 	* Clear all views
 	*/
 	void function clearAllViews(async=false) output=false{
-		/*
-		Not possible
-		
 		var threadName = "clearAllViews_#replace(instance.uuidHelper.randomUUID(),"-","","all")#";
 		
 		// Async? IF so, do checks
@@ -80,39 +74,35 @@ component serializable="false" extends="CouchbaseProvider" implements="coldbox.s
 		else{
 			instance.elementCleaner.clearAllViews();
 		}
-		*/
+		
 	}
 	
 	/**
 	* Clear event
 	*/
 	void function clearEvent(required eventsnippet, queryString="") output=false{
-		// Not possible
-		//instance.elementCleaner.clearEvent(arguments.eventsnippet,arguments.queryString);
+		instance.elementCleaner.clearEvent(arguments.eventsnippet,arguments.queryString);
 	}
 	
 	/**
 	* Clear multiple events
 	*/
 	void function clearEventMulti(required eventsnippets,queryString="") output=false{
-		// Not possible
-		//instance.elementCleaner.clearEventMulti(arguments.eventsnippets,arguments.queryString);
+		instance.elementCleaner.clearEventMulti(arguments.eventsnippets,arguments.queryString);
 	}
 	
 	/**
 	* Clear view
 	*/
 	void function clearView(required viewSnippet) output=false{
-		// Not possible
-		//instance.elementCleaner.clearView(arguments.viewSnippet);
+		instance.elementCleaner.clearView(arguments.viewSnippet);
 	}
 	
 	/**
 	* Clear multiple view
 	*/
 	void function clearViewMulti(required viewsnippets) output=false{
-		// Not possible
-		//instance.elementCleaner.clearView(arguments.viewsnippets);
+		instance.elementCleaner.clearView(arguments.viewsnippets);
 	}
 	
 }

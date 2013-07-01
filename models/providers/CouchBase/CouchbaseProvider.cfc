@@ -232,12 +232,12 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 				// Load up the jars from their path
 				getJavaLoader().init([
 					'#config.jarPath#commons-codec-1.5.jar',
-					'#config.jarPath#couchbase-client-1.1.6.jar',
+					'#config.jarPath#couchbase-client-1.1.7.jar',
 					'#config.jarPath#httpcore-4.1.1.jar',
 					'#config.jarPath#httpcore-nio-4.1.1.jar',
 					'#config.jarPath#jettison-1.1.jar',
 					'#config.jarPath#netty-3.5.5.Final.jar',
-					'#config.jarPath#spymemcached-2.8.12.jar'
+					'#config.jarPath#spymemcached-2.9.0.jar'
 				]);
 			}
 			catch(any e) {
@@ -374,7 +374,12 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		// which makes ColdBox's error handing blow up since it tries to use the type as a string.
     	try{
 	    	local.allView = getCouchBaseClient().getView('CacheBox_allKeys','allKeys');
-	    	local.query = getJavaLoader().create("com.couchbase.client.protocol.views.Query").init(); 
+	    	local.query = getJavaLoader().create("com.couchbase.client.protocol.views.Query").init();
+	    	local.StaleClass = getJavaLoader().create("com.couchbase.client.protocol.views.Stale");
+	    	// Just return the keys, not the docs
+	    	local.query.setIncludeDocs(false);
+	    	// request fresh data
+	    	local.query.setStale(local.StaleClass.FALSE);
 	    	local.response = getCouchBaseClient().query(local.allView,local.query);
 		}
 		catch(any e) {
@@ -394,7 +399,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     	local.results = [];
     	
     	while(local.iterator.hasNext()) {
-    		arrayAppend(local.results,local.iterator.next().getID());
+    		arrayAppend(local.results,local.iterator.next().getId());
     	}
     	
     	return local.results;
@@ -425,7 +430,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     	
     	local.designDocumentName = 'CacheBox_' & arguments.viewName;
     	
-    	// CouchBase doesn't provide a way to check for DesignDocuments, so try to retreive it and catch the error.
+    	// CouchBase doesn't provide a way to check for DesignDocuments, so try to retrieve it and catch the error.
     	// This should only error the first time and will run successfully every time after.
     	try {
     		getCouchBaseClient().getDesignDocument(local.designDocumentName);	
@@ -446,6 +451,26 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			local.designDocument.getViews().add(local.viewDesign);
 			getCouchBaseClient().createDesignDoc(local.designDocument);
     		
+    		// View creation and population is asynchronous so we'll wait a while until it's ready
+			local.attempts = 0;
+			while(++attempts <= 5) {
+				try {
+					// Access the view
+			    	local.allView = getClient().getView(local.designDocumentName,arguments.viewName);
+			    	local.query = getJavaLoader().create("com.couchbase.client.protocol.views.Query").init();
+			    	local.StaleClass = getJavaLoader().create("com.couchbase.client.protocol.views.Stale");
+			    	local.query.setIncludeDocs(false);
+			    	// This will force a re-index
+			    	local.query.setStale(local.StaleClass.FALSE);
+			    	getClient().query(local.allView,local.query);
+				}
+				catch(Any e) {
+					// Wait a bit before trying again
+					sleep(1000);
+				}
+			}
+    		
+    		// We either successfully executed our new view, or we gave up trying.
     		return;
     	}
     	
