@@ -23,7 +23,7 @@
 				cb.set(i,i);
 			}
 		}
-		writeOutput('<br>');		
+		writeOutput('<br>');
 		i=0;
 		timer type="inline" label="looping gets" {
 			while(++i<iterations) {

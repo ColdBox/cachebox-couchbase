@@ -494,17 +494,11 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     	if(structKeyExists(local,"stats")) {
     		
     		local.key_exptime =  iif(structKeyExists(local.stats,"key_exptime"), "local.stats['key_exptime']",  0);
-    		local.key_last_modification_time =  iif(structKeyExists(local.stats,"key_last_modification_time"), "local.stats['key_last_modification_time']",  0);
     		
     		// These are opoch times.  Seconds since 1/1/1970 UTC
-    		if(val(local.key_exptime) && val(local.key_last_modification_time)) {
-    			// Time is expiration minus last modified (seconds) / 60 for minutes
-    			local.keyStats.timeout = round((local.key_exptime - local.key_last_modification_time)/60);
+    		if(val(local.key_exptime)) {
     			// last access and expire time is epoch seconds added to 1/1/1970 and converted to local time  
     			local.keyStats.timeExpires = DateAdd("s", local.key_exptime ,DateConvert("utc2Local", "January 1 1970 00:00"));
-    			local.keyStats.LastAccessed = DateAdd("s", local.key_last_modification_time ,DateConvert("utc2Local", "January 1 1970 00:00")); 
-    			// Key is expired if expire time is past
-    			local.keyStats.isExpired = local.keyStats.timeExpires < now();
     		}
 			
     	}
