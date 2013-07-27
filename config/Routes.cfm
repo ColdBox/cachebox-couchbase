@@ -1,7 +1,5 @@
 <cfscript>
 	// General Properties
-	setEnabled(true);
-	setUniqueURLS(false);
 	//setAutoReload(false);
 	
 	// Base URL

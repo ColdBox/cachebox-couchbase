@@ -1,5 +1,4 @@
-<cfcomponent output="false">
-<cfscript>
+component{
 
 	// Configure ColdBox Application
 	function configure(){
@@ -10,10 +9,10 @@
 			appName 				= "CouchBaseTestApp",
 			
 			//Development Settings
-			debugMode				= false,
+			debugMode				= true,
 			debugPassword			= "",
 			reinitPassword			= "",
-			handlersIndexAutoReload = false,
+			handlersIndexAutoReload = true,
 			
 			//Implicit Events
 			defaultEvent			= "main.index",
@@ -21,12 +20,6 @@
 			//Application Aspects
 			handlerCaching 			= false,
 			eventCaching			= false
-		};
-	
-		
-		//Layout Settings
-		layoutSettings = {
-			defaultLayout = "Layout.Main.cfm"
 		};
 		
 		//Register interceptors as an array, we need order
@@ -53,5 +46,4 @@
 				
 	}
 
-</cfscript>
-</cfcomponent>
+}
