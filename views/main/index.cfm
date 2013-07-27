@@ -18,19 +18,22 @@
 		i=0;
 		// Tested this up to 500K iterations.  
 		iterations = 10;
-		timer type="inline" label="looping sets" {
-			while(++i<iterations) {
-				cb.set(i,i);
-			}
+	
+		sTime = getTickCount();
+		while(++i<iterations) {
+			cb.set(i,i);
 		}
-		writeOutput('<br>');
+		setsTime = getTickCount() - sTime;
+		writeOutput( "<h2>Sets Time: #setsTime#ms<h2><br>");
+		//writeOutput( "<h2>Keys:<h2><br>#cb.getKeys().toString()#");
+		//abort;
 		i=0;
-		timer type="inline" label="looping gets" {
+		sTime = getTickCount();
 			while(++i<iterations) {
 				cb.get(i);
 			}
-		}
-		writeOutput('<br>');
+		getsTime = getTickCount() - sTime;
+		writeOutput( "<h2>Gets Time: #getsTime#ms<h2><br>");
 	
 		// Careful calling this.  It is asynch and can take a while to run so you might not be able to set anything into the  
 		// cache for a few minutes until it is still deleting.  (If you try, you will get nothing back so I assume it is still "deleting")

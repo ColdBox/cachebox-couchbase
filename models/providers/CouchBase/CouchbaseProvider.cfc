@@ -3,7 +3,7 @@
 Copyright Since 2005 ColdBox Framework by Luis Majano and Ortus Solutions, Corp
 www.coldbox.org | www.luismajano.com | www.ortussolutions.com
 ********************************************************************************
-Author: Brad Wood
+Author: Brad Wood, Luis Majano
 Description:
 	
 This CacheBox provider communicates with a single Couchbase node or a 
@@ -40,20 +40,20 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			// storage composition, even if it does not exist, depends on cache
 			store				= "",
 			// the cache identifier for this provider
-			cacheID				= createObject('java','java.lang.System').identityHashCode(this),
+			cacheID				= createObject('java','java.lang.System').identityHashCode( this ),
 			// Element Cleaner Helper
-			elementCleaner		= CreateObject("component","coldbox.system.cache.util.ElementCleaner").init(this),
+			elementCleaner		= CreateObject("component","coldbox.system.cache.util.ElementCleaner").init( this ),
 			// Utilities
 			utility				= createObject("component","coldbox.system.core.util.Util"),
 			// our UUID creation helper
 			uuidHelper			= createobject("java", "java.util.UUID"),
 			// Java URI class
 			URIClass 			= createObject("java", "java.net.URI"),
-			// Java URI class
+			// Java Time Units
 			TimeUnitClass 		= createObject("java", "java.util.concurrent.TimeUnit"),
 			// For serialization of complex values
 			converter			= createObject("component","coldbox.system.core.conversion.ObjectMarshaller").init(),
-			// JavaLoader will be used to load the Jars.  Wait to init until the configure() method
+			// Core ColdBox JavaLoader will be used to load the Jars.  Wait to init until the configure() method
 			JavaLoader			= CreateObject("component","coldbox.system.core.javaloader.JavaLoader")
 		};
 		
@@ -68,7 +68,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			servers = "localhost:8091", // This can be an array
 			username = "",
 			password = "",
-			jarPath = GetDirectoryFromPath(GetCurrentTemplatePath()) & "jars/"
+			jarPath = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "jars/"
 		};		
 		
 		return this;
@@ -160,47 +160,45 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		
 		// Validate configuration values, if they don't exist, then default them to DEFAULTS
 		for(key in instance.DEFAULTS){
-			if( NOT structKeyExists(cacheConfig, key) OR (isSimpleValue(cacheConfig[key]) AND NOT len(cacheConfig[key])) ){
-				cacheConfig[key] = instance.DEFAULTS[key];
+			if( NOT structKeyExists( cacheConfig, key) OR ( isSimpleValue( cacheConfig[ key ] ) AND NOT len( cacheConfig[ key ] ) ) ){
+				cacheConfig[ key ] = instance.DEFAULTS[ key ];
 			}
 			
 			// Force servers to be an array even if there's only one and ensure proper URI format
-			if(key == 'servers') {
-				cacheConfig[key] = formatServers(cacheConfig[key]);
+			if( key == 'servers' ) {
+				cacheConfig[ key ] = formatServers( cacheConfig[ key ] );
 			}
 			
 		}
 	}
 	
 	/**
-    * configure the cache for operation
+    * Format the incoming simple couchbas server URL location strings into our format
     */
-    private array function formatServers(servers) {
+    private array function formatServers(required servers) {
     	var i = 0;
     	
-		if(!isArray(servers)) {
-			servers = listToArray(servers);
+		if( !isArray( servers ) ){
+			servers = listToArray( servers );
 		}
 				
 		// Massage server URLs to be "PROTOCOL://host:port/pools/"
-		while(++i <= arrayLen(servers)) {
+		while(++i <= arrayLen( servers ) ){
 			
-			// Add protocol if neccessar
-			if(!findNoCase("http",servers[i])) {
-				servers[i] = "http://" & servers[i];
+			// Add protocol if neccessary
+			if( !findNoCase( "http",servers[ i ] ) ){
+				servers[ i ] = "http://" & servers[ i ];
 			}
 			
-			// Strip trailing slash
-			if(right(servers[i],1) == '/') {
-				servers[i] = mid(servers[i],1,len(servers[i])-1);
-			}
+			// Strip trailing slash via regex, its fast
+			servers[ i ] = reReplace( servers[ i ], "/$", "");
 			
 			// Add directory
-			if(right(servers[i],6) != '/pools') {
-				servers[i] &= '/pools';
+			if( right( servers[ i ], 6 ) != '/pools' ){
+				servers[ i ] &= '/pools';
 			}
 			
-		} // Server loop
+		} // end server loop
 		
 		return servers;
 	}
@@ -209,26 +207,25 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * configure the cache for operation
     */
     void function configure() output="false" {
-		var config 	= '';
+		var config 	= getConfiguration();
 		var props	= [];
 		var URIs 	= [];
     	var i = 0;
-    	var CouchBaseClientClass = '';
-    	var CouchbaseConnectionFactoryBuilder = '';
-    	var CouchbaseConnectionFactory = '';
+    	var couchBaseClientClass = '';
+    	var couchbaseConnectionFactoryBuilder = '';
+    	var couchbaseConnectionFactory = '';
 			
-		// Validate the configuration
-		validateConfiguration();
-		config = getConfiguration();
-		
-		// Prepare the logger
-		instance.logger = getCacheFactory().getLogBox().getLogger( this );
-		instance.logger.debug("Starting up Couchbaseprovider Cache: #getName()# with configuration: #config.toString()#");
-			
+		// lock creation	
 		lock name="Couchbaseprovider.config.#instance.cacheID#" type="exclusive" throwontimeout="true" timeout="20"{
 		
-			try{
+			// Prepare the logger
+			instance.logger = getCacheFactory().getLogBox().getLogger( this );
+			instance.logger.debug("Starting up Couchbaseprovider Cache: #getName()# with configuration: #config.toString()#");
 			
+			// Validate the configuration
+			validateConfiguration();
+		
+			try{
 				// Load up the jars from their path
 				getJavaLoader().init([
 					'#config.jarPath#commons-codec-1.5.jar',
@@ -242,43 +239,46 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			}
 			catch(any e) {
 				e.printStackTrace();
-				throw(message='Error Loading CouchBase Client Jars', detail=e.message & " " & e.detail)
+				instance.logger.error("Error Loading Couchbase Client Jars: #e.message# #e.detail#", e );
+				throw(message='Error Loading CouchBase Client Jars', detail=e.message & " " & e.detail);
 			}		
 			
 			try{
 			
 				// Prepare list of servers
-				while(++i <= arrayLen(config.servers)) {
-					arrayAppend(URIs,instance.URIClass.create(config.servers[i]));					
+				while(++i <= arrayLen( config.servers ) ){
+					arrayAppend( URIs, instance.URIClass.create( config.servers[ i ] ) );					
 				}
 				
 				// Create a connection factory builder
 				CouchbaseConnectionFactoryBuilder = getJavaLoader().create("com.couchbase.client.CouchbaseConnectionFactoryBuilder").init();
 				
-				// Set out timeoutes into the factory builder
-		        CouchbaseConnectionFactoryBuilder.setOpQueueMaxBlockTime(config.opQueueMaxBlockTime);
-		        CouchbaseConnectionFactoryBuilder.setOpTimeout(config.opTimeout);
-		        CouchbaseConnectionFactoryBuilder.setTimeoutExceptionThreshold(config.timeoutExceptionThreshold);        
+				// Set out timeouts into the factory builder
+		        CouchbaseConnectionFactoryBuilder.setOpQueueMaxBlockTime( config.opQueueMaxBlockTime );
+		        CouchbaseConnectionFactoryBuilder.setOpTimeout( config.opTimeout );
+		        CouchbaseConnectionFactoryBuilder.setTimeoutExceptionThreshold( config.timeoutExceptionThreshold );        
 		        
 		        // Build our connection factory with the defaults we set above
-				CouchbaseConnectionFactory = CouchbaseConnectionFactoryBuilder.buildCouchbaseConnection(URIs, config.bucket, config.password);
+				CouchbaseConnectionFactory = CouchbaseConnectionFactoryBuilder.buildCouchbaseConnection( URIs, config.bucket, config.password );
 		        				
 		        // Create actual client class.  
 				CouchBaseClientClass = getJavaLoader().create("com.couchbase.client.CouchbaseClient");
 			}
 			catch(any e) {
 				e.printStackTrace();
-				throw(message='There was an error creating the CouchbaseClient library', detail=e.message & " " & e.detail)
+				instance.logger.error("There was an error creating the CouchbaseClient library: #e.message# #e.detail#", e );
+				throw(message='There was an error creating the CouchbaseClient library', detail=e.message & " " & e.detail);
 			}
 			
 			try{
 				// Instantiate the client with out connection factory.  This is in a separate try catch to help differentiate between
 				// Java classpath issues versus CouchBase connection issues.  
-				setCouchBaseClient(CouchBaseClientClass.init(CouchbaseConnectionFactory));
+				setCouchBaseClient( CouchBaseClientClass.init( CouchbaseConnectionFactory ) );
 			}
 			catch(any e) {
 				e.printStackTrace();
-				throw(message='There was an error connecting to the Couchbase server. Config: #serializeJSON(config)#', detail=e.message & " " & e.detail)
+				instance.logger.error("There was an error connecting to the Couchbase server. Config: #serializeJSON(config)#: #e.message# #e.detail#", e );
+				throw(message='There was an error connecting to the Couchbase server. Config: #serializeJSON(config)#', detail=e.message & " " & e.detail);
 			}
 			
 			// enabled cache
@@ -293,7 +293,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * shutdown the cache
     */
     void function shutdown() output="false" {
-    	getCouchBaseClient().shutDown(5,instance.TimeUnitClass.SECONDS);
+    	getCouchBaseClient().shutDown( 5, instance.TimeUnitClass.SECONDS );
 		instance.logger.info("CouchbaseProvider Cache: #getName()# has been shutdown.");
 	}
 	
@@ -316,7 +316,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	* @colddoc:generic coldbox.system.cache.util.ICacheStats
 	*/
 	any function getStats() output="false" {
-		return createObject("component", "CouchbaseStats").init( this );		
+		return createObject("component", "util.CouchbaseStats").init( this );		
 	}
 	
 	/**
@@ -674,24 +674,25 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     any function clear(required any objectKey) output="false" {
 		
-		getCouchBaseClient().delete(arguments.objectKey);
+		// Delete from couchbase
+		getCouchBaseClient().delete( arguments.objectKey );
 		
 		//ColdBox events
 		var iData = { 
 			cache				= this,
 			cacheObjectKey 		= arguments.objectKey
 		};		
-		getEventManager().processState("afterCacheElementRemoved",iData);
+		getEventManager().processState( "afterCacheElementRemoved", iData );
 		
 		return true;
 	}
 	
 	/**
-    * clear with no advising to events
+    * Clear with no advising to events
     */
     any function clearQuiet(required any objectKey) output="false" {
 		// normal clear, not implemented by Couchbase
-		clear(arguments.objectKey);
+		clear( arguments.objectKey );
 		return true;
 	}
 	
@@ -715,17 +716,17 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	}
 	
 	/**
-    * not implemented by cache
+    * Expiration not implemented by couchbase so clears are issued
     */
     void function expireAll() output="false" { 
 		clearAll();
 	}
 	
 	/**
-    * not implemented by cache
+    * Expiration not implemented by couchbase so clear is issued
     */
     void function expireObject(required any objectKey) output="false" {
-		clear(arguments.objectKey);
+		clear( arguments.objectKey );
 	}
 
 }
