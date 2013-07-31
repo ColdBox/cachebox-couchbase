@@ -50,7 +50,7 @@
 	                }
 	            },
 			   couchBase = {
-			        provider="couchbaseApp.models.providers.CouchBase.CouchBaseColdBoxProvider",
+			        provider="couchbaseApp.models.providers.CouchBase.CouchBaseProvider",
 			        properties = {
 	                    objectDefaultTimeout = 15,
 	                    opQueueMaxBlockTime = 5000,
