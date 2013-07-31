@@ -512,18 +512,18 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     any function get(required any objectKey) output="false" {
     	try {
     		// local.object will always come back as a string
-			local.object = getCouchBaseClient().get(arguments.objectKey);
+    		local.object = getCouchBaseClient().get( javacast( "string", arguments.objectKey ) );
 			
-			// item is no longer in cache
-			if(!structKeyExists(local,"object")) {
+			// item is no longer in cache, return null
+			if( !structKeyExists( local, "object" ) ){
 				return;
 			}
 			
-			local.convertedFlagLength = len(this.CONVERTED_FLAG);
+			local.convertedFlagLength = len( this.CONVERTED_FLAG );
 			// If the stored value had been converted
-			if(len(local.object) > local.convertedFlagLength && left(local.object,local.convertedFlagLength) == this.CONVERTED_FLAG) {
+			if( len( local.object ) > local.convertedFlagLength && left( local.object, local.convertedFlagLength ) == this.CONVERTED_FLAG) {
 				// Strip out the converted flag and deserialize.
-				local.object = mid(local.object,local.convertedFlagLength+1,len(local.object)-local.convertedFlagLength);
+				local.object = mid( local.object, local.convertedFlagLength+1, len( local.object ) - local.convertedFlagLength );
 				return instance.converter.deserializeObject(binaryObject=local.object);
 			}
 			
@@ -532,7 +532,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		}
 		catch(any e) {
 			
-			if( isTimeoutException(e) && getConfiguration().ignoreCouchBaseTimeouts) {
+			if( isTimeoutException( e ) && getConfiguration().ignoreCouchBaseTimeouts ) {
 				// Return nothing as though it wasn't even found in the cache
 				return;
 			}
@@ -542,15 +542,11 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		}
 	}
 	
-    private boolean function isTimeoutException(required any exception) {
-    	return (exception.type == 'net.spy.memcached.OperationTimeoutException' || exception.message == 'Exception waiting for value' || exception.message == 'Interrupted waiting for value');
-	}
-	
 	/**
     * get an item silently from cache, no stats advised: Stats not available on Couchbase
     */
     any function getQuiet(required any objectKey) output="false" {
-		// "quiet" "not implemented by Couchbase yet
+		// "quiet" not implemented by Couchbase yet
 		return get(argumentCollection=arguments);
 	}
 	
@@ -558,15 +554,14 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * Not implemented by this cache
     */
     any function isExpired(required any objectKey) output="false" {
-		return getCachedObjectMetadata(arguments.objectKey).isExpired;
+		return getCachedObjectMetadata( arguments.objectKey ).isExpired;
 	}
 	 
 	/**
     * check if object in cache
     */
     any function lookup(required any objectKey) output="false" {
-    	local.tmp = get(objectKey);
-    	return structKeyExists(local,'tmp');
+    	return ( isNull( get( objectKey ) ) ? false : true );
 	}
 	
 	/**
@@ -574,7 +569,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     any function lookupQuiet(required any objectKey) output="false" {
 		// not possible yet on Couchbase
-		return lookup(arguments.objectKey);
+		return lookup( arguments.objectKey );
 	}
 	
 	/**
@@ -666,7 +661,6 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		
 		// notify listeners		
 		getEventManager().processState("afterCacheClearAll",iData);
-		
 	}
 	
 	/**
@@ -727,6 +721,12 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     void function expireObject(required any objectKey) output="false" {
 		clear( arguments.objectKey );
+	}
+
+	/************************************** PRIVATE *********************************************/
+	
+	private boolean function isTimeoutException(required any exception) {
+    	return (exception.type == 'net.spy.memcached.OperationTimeoutException' || exception.message == 'Exception waiting for value' || exception.message == 'Interrupted waiting for value');
 	}
 
 }
