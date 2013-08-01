@@ -485,14 +485,15 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     	// lower case the keys for case insensitivity
 		arguments.objectKey = lcase( arguments.objectKey );
 		
-		// prepare stats map
+		// prepare stats return map
     	local.keyStats = {
 			timeout = "",
 			lastAccessed = "",
 			timeExpires = "",
 			isExpired = 0,
 			isDirty = 0,
-			cas = ""
+			cas = "",
+			dataAge = 0
 		};
     	
     	// Get stats for this key from the returned java future
@@ -516,14 +517,16 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			if( structKeyExists( local.stats, "key_is_dirty" ) ){
     			local.keyStats.isDirty = local.stats[ "key_is_dirty" ]; 
     		}
+    		// data_age
+			if( structKeyExists( local.stats, "key_data_age" ) ){
+    			local.keyStats.dataAge = local.stats[ "key_data_age" ]; 
+    		}
     		// cas
 			if( structKeyExists( local.stats, "key_cas" ) ){
     			local.keyStats.cas = local.stats[ "key_cas" ]; 
     		}
     		
     	}
-    	
-    	writeDump(local);abort;
     	
     	return local.keyStats;
 	}
