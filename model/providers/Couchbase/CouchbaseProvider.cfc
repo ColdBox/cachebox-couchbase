@@ -502,7 +502,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     		// key_exptime
     		if( structKeyExists( local.stats, "key_exptime" ) and isNumeric( local.stats[ "key_exptime" ] ) ){
     			local.keyStats.timeExpires = dateAdd("s", local.stats[ "key_exptime" ], dateConvert( "utc2Local", "January 1 1970 00:00" ) );
-    			local.keyStats.timeout = dateDiff( "n", local.keyStats.timeExpires, now() ); 
+    			local.keyStats.timeout = dateDiff( "n", now(), local.keyStats.timeExpires ); 
     		}
     		// key_last_modification_time
     		if( structKeyExists( local.stats, "key_last_modification_time" ) and isNumeric( local.stats[ "key_last_modification_time" ] ) ){
