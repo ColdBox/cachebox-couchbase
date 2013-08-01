@@ -512,7 +512,10 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * get an item from cache
     */
     any function get(required any objectKey) output="false" {
-    	try {
+    	// lower case the keys for case insensitivity
+		arguments.objectKey = lcase( arguments.objectKey );
+		
+		try {
     		// local.object will always come back as a string
     		local.object = getCouchBaseClient().get( javacast( "string", arguments.objectKey ) );
 			
@@ -611,11 +614,14 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 						  any timeout=instance.configuration.objectDefaultTimeout,
 						  any lastAccessTimeout="0", // Not used for this provider
 						  any extra=structNew()) output="false" {
-
+		
+		// lower case the keys for case insensitivity
+		arguments.objectKey = lcase( arguments.objectKey );
+		
 		// "quiet" "not implemented by Couchbase yet
 		var future = "";
 		
-		if( !isSimpleValue(arguments.object) ){
+		if( !isSimpleValue( arguments.object ) ){
 			arguments.object = this.CONVERTED_FLAG & instance.converter.serializeObject( arguments.object );
 		}
 
@@ -689,6 +695,8 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * @tested
     */
     any function clear(required any objectKey) output="false" {
+		// lower case the keys for case insensitivity
+		arguments.objectKey = lcase( arguments.objectKey );
 		
 		// Delete from couchbase
 		var future = getCouchBaseClient().delete( arguments.objectKey );

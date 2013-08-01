@@ -80,7 +80,7 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		assertTrue( isNull( r ) );
 			
 		testVal = {name="luis", age=32};
-		cache.getObjectStore().set( "unitTestKey", 500, serializeJSON( testVal ) );
+		cache.getObjectStore().set( "unittestkey", 500, serializeJSON( testVal ) );
 		
 		results = cache.get( 'unitTestKey' );
 		assertEquals( testVal, deserializeJSON( results ) );
@@ -131,24 +131,24 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		cache.reap();
 	}
 	
-	function testSet(){
+	function testSetQuiet(){
 		// not simple value
 		testVal = {name="luis", age=32};
 		cache.set( 'unitTestKey', testVal, 1 );
 		
-		results = cache.getObjectStore().get( "unitTestKey" );
+		results = cache.getObjectStore().get( "unittestkey" );
 		
 		assertTrue( len( results ) );
 		assertTrue( findNocase( "converted", results ) );
 		
-		// simple values
+		// simple values with different cases
 		cache.set( 'anotherKey', 'Hello Couchbase', 1 );
-		
-		results = cache.getObjectStore().get( "anotherKey" );
-		
+		results = cache.getObjectStore().get( "anotherkey" );
 		assertTrue( len( results ) );
 		assertFalse( findNocase( "converted", results ) );
-		
+	}
+	
+	function testSet(){
 		
 	}
 	
