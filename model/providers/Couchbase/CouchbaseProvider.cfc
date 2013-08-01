@@ -316,36 +316,38 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	* @colddoc:generic coldbox.system.cache.util.ICacheStats
 	*/
 	any function getStats() output="false" {
-		return createObject("component", "util.CouchbaseStats").init( this );		
+		return new CouchbaseStats( this );		
 	}
 	
 	/**
     * clear the cache stats: 
     */
     void function clearStatistics() output="false" {
-    	// Not 
+    	// Not implemented
 	}
 	
 	/**
-    * Returns the underlying cache engine: Not enabled in this provider
+    * Returns the underlying cache engine represented by a Couchbaseclient object
+    * http://www.couchbase.com/autodocs/couchbase-java-client-1.1.5/index.html
     */
     any function getObjectStore() output="false" {
     	// This provider uses an external object store
+    	return getCouchbaseClient();
 	}
 	
 	/**
     * get the cache's metadata report
     */
     any function getStoreMetadataReport() output="false" {	
-			var md 		= {};
-			var keys 	= getKeys();
-			var item	= "";
-			
-			for(item in keys){
-				md[item] = getCachedObjectMetadata(item);
-			}
-			
-			return md;
+		var md 		= {};
+		var keys 	= getKeys();
+		var item	= "";
+		
+		for(item in keys){
+			md[item] = getCachedObjectMetadata(item);
+		}
+		
+		return md;
 	}
 	
 	/**
@@ -533,6 +535,8 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		catch(any e) {
 			
 			if( isTimeoutException( e ) && getConfiguration().ignoreCouchBaseTimeouts ) {
+				// log it
+				instance.logger.error( "Couchbase timeout exception detected: #e.message# #e.detail#", e );
 				// Return nothing as though it wasn't even found in the cache
 				return;
 			}

@@ -22,13 +22,11 @@ Description :
 	
 	<cfscript>
 	// FILL OUT: THE LOCATION OF THE CONTENTBOX MODULE
-	rootPath = replacenocase(replacenocase(getDirectoryFromPath(getCurrentTemplatePath()),"test\",""),"test/","");
+	rootPath = replacenocase(replacenocase(getDirectoryFromPath(getCurrentTemplatePath()),"tests\",""),"tests/","");
 	// Mappings
 	this.mappings[ "/couchbaseApp"] = rootPath;
 	
-
 	public boolean function onRequestStart(String targetPage){
-
 		return true;
 	}
 	</cfscript>
