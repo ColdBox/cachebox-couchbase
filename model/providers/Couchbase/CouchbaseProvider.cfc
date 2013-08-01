@@ -637,6 +637,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		
 	/**
     * get cache size
+    * @tested
     */
     any function getSize() output="false" {
 		return getStats().getObjectCount();
@@ -644,6 +645,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	
 	/**
     * Not implemented by this cache
+    * @tested
     */
     void function reap() output="false" {
 		// Not implemented by this provider
@@ -651,6 +653,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	
 	/**
     * clear all elements from cache
+    * @tested
     */
     void function clearAll() output="false" {
 		
@@ -668,30 +671,32 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	}
 	
 	/**
-    * clear an element from cache
+    * clear an element from cache and returns the couchbase java future
+    * @tested
     */
     any function clear(required any objectKey) output="false" {
 		
 		// Delete from couchbase
-		getCouchBaseClient().delete( arguments.objectKey );
+		var future = getCouchBaseClient().delete( arguments.objectKey );
 		
 		//ColdBox events
 		var iData = { 
 			cache				= this,
-			cacheObjectKey 		= arguments.objectKey
+			cacheObjectKey 		= arguments.objectKey,
+			couchbaseFuture		= future
 		};		
 		getEventManager().processState( "afterCacheElementRemoved", iData );
 		
-		return true;
+		return future;
 	}
 	
 	/**
-    * Clear with no advising to events
+    * Clear with no advising to events and returns with the couchbase java future
+    * @tested
     */
     any function clearQuiet(required any objectKey) output="false" {
 		// normal clear, not implemented by Couchbase
-		clear( arguments.objectKey );
-		return true;
+		return clear( arguments.objectKey );
 	}
 	
 	/**
@@ -715,21 +720,23 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	
 	/**
     * Expiration not implemented by couchbase so clears are issued
+    * @tested
     */
-    void function expireAll() output="false" { 
+    void function expireAll() output="false"{ 
 		clearAll();
 	}
 	
 	/**
     * Expiration not implemented by couchbase so clear is issued
+    * @tested
     */
-    void function expireObject(required any objectKey) output="false" {
+    void function expireObject(required any objectKey) output="false"{
 		clear( arguments.objectKey );
 	}
 
 	/************************************** PRIVATE *********************************************/
 	
-	private boolean function isTimeoutException(required any exception) {
+	private boolean function isTimeoutException(required any exception){
     	return (exception.type == 'net.spy.memcached.OperationTimeoutException' || exception.message == 'Exception waiting for value' || exception.message == 'Interrupted waiting for value');
 	}
 

@@ -80,10 +80,55 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		assertTrue( isNull( r ) );
 			
 		testVal = {name="luis", age=32};
-		cache.getObjectStore().set( "unitTestKey", 500, testVal );
+		cache.getObjectStore().set( "unitTestKey", 500, serializeJSON( testVal ) );
 		
+		results = cache.get( 'unitTestKey' );
+		assertEquals( testVal, deserializeJSON( results ) );
 	}
 	
+	function testGetQuiet(){
+		testGet();
+	}
 	
+	function testGetSize(){
+		cache.getObjectStore().set( "unitTestKey", 500, 'Testing' );
+		assertTrue( isNumeric( cache.getSize() ) );
+		future = cache.getObjectStore().flush();
+		future.get();
+		assertEquals( 0, cache.getSize() );
+	}
+	
+	function testExpireObject(){
+		// test not valid object
+		cache.expireObject( "invalid" );
+		// test real object
+		cache.getObjectStore().set( "unitTestKey", 500, 'Testing' );
+		cache.expireObject( "unitTestKey" );
+		results = cache.get( 'unitTestKey' );
+		assertTrue( isNull( results ) );
+	}
+	
+	function testExpireAll(){
+		cache.getObjectStore().set( "unitTestKey", 500, 'Testing' );
+		cache.expireAll();
+		// wait for async operation
+		sleep( 1000 );
+		assertEquals( 0, cache.getSize() );
+	}
+	
+	function testClear(){
+		cache.getObjectStore().set( "unitTestKey", 500, 'Testing' );
+		r = cache.getObjectStore().delete( "unitTestKey" );
+		r.get();
+		assertTrue( isNull( cache.getObjectStore().get( "unitTestKey" ) ) );
+	}
+	
+	function testClearQuiet(){
+		testClear();
+	}
+	
+	function testReap(){
+		cache.reap();
+	}
 	
 }
