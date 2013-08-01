@@ -577,7 +577,8 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	}
 	
 	/**
-    * set an object in cache
+    * set an object in cache and returns an object future if possible
+    * lastAccessTimeout.hint Not used in this provider
     */
     any function set(required any objectKey,
 					 required any object,
@@ -585,7 +586,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 					 any lastAccessTimeout="0", // Not used for this provider
 					 any extra) output="false" {
 		
-		setQuiet(argumentCollection=arguments);
+		var future = setQuiet(argumentCollection=arguments);
 		
 		//ColdBox events
 		var iData = { 
@@ -593,46 +594,58 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			cacheObject			= arguments.object,
 			cacheObjectKey 		= arguments.objectKey,
 			cacheObjectTimeout 	= arguments.timeout,
-			cacheObjectLastAccessTimeout = arguments.lastAccessTimeout
+			cacheObjectLastAccessTimeout = arguments.lastAccessTimeout,
+			couchbaseFuture 	= future
 		};		
 		getEventManager().processState("afterCacheElementInsert",iData);
 		
+		return future;
 	}	
 	
 	/**
-    * set an object in cache with no advising to events
+    * set an object in cache with no advising to events, returns a couchbase future if possible
+    * lastAccessTimeout.hint Not used in this provider
     */
     any function setQuiet(required any objectKey,
 						  required any object,
 						  any timeout=instance.configuration.objectDefaultTimeout,
 						  any lastAccessTimeout="0", // Not used for this provider
-						  any extra) output="false" {
+						  any extra=structNew()) output="false" {
 
 		// "quiet" "not implemented by Couchbase yet
+		var future = "";
 		
-		if(!isSimpleValue(arguments.object)) {
+		if( !isSimpleValue(arguments.object) ){
 			arguments.object = this.CONVERTED_FLAG & instance.converter.serializeObject( arguments.object );
 		}
 
     	try {
     		
 			// You can pass in a net.spy.memcached.transcoders.Transcoder to override the default
-			if(structKeyExists(arguments,'extra') && structKeyExists(arguments.extra,'transcoder')) {
-				 getCouchBaseClient().set(javaCast("string",arguments.objectKey), javaCast("int",arguments.timeout*60), arguments.object,extra.transcoder);
-			} else {
-				getCouchBaseClient().set(javaCast("string",arguments.objectKey), javaCast("int",arguments.timeout*60), arguments.object);
+			if( structKeyExists( arguments, 'extra' ) && structKeyExists( arguments.extra, 'transcoder' ) ){
+				future = getCouchBaseClient()
+					.set( javaCast( "string", arguments.objectKey ), javaCast( "int", arguments.timeout*60 ), arguments.object, extra.transcoder );
+			}
+			else {
+				future = getCouchBaseClient()
+					.set( javaCast( "string", arguments.objectKey ), javaCast( "int",arguments.timeout*60 ), arguments.object);
 			}
 		
 		}
 		catch(any e) {
 			
-			if( isTimeoutException(e) && getConfiguration().ignoreCouchBaseTimeouts) {
+			if( isTimeoutException( e ) && getConfiguration().ignoreCouchBaseTimeouts) {
+				// log it
+				instance.logger.error( "Couchbase timeout exception detected: #e.message# #e.detail#", e );
+				// return nothing
 				return;
 			}
 			
 			// For any other type of exception, rethrow.
 			rethrow;
 		}
+		
+		return future;
 	}	
 		
 	/**
@@ -660,10 +673,11 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		// If flush is not enabled for this bucket, no error will be thrown.  The call will simply return and nothing will happen.
 		// Be very careful calling this.  It is an intensive asynch operation and the cache won't receive any new items until the flush
 		// is finished which might take a few minutes.
-		getCouchBaseClient().flush();		
+		var future = getCouchBaseClient().flush();		
 				 
 		var iData = {
-			cache	= this
+			cache			= this,
+			couchbaseFuture = future
 		};
 		
 		// notify listeners		

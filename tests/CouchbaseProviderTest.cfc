@@ -131,4 +131,25 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		cache.reap();
 	}
 	
+	function testSet(){
+		// not simple value
+		testVal = {name="luis", age=32};
+		cache.set( 'unitTestKey', testVal, 1 );
+		
+		results = cache.getObjectStore().get( "unitTestKey" );
+		
+		assertTrue( len( results ) );
+		assertTrue( findNocase( "converted", results ) );
+		
+		// simple values
+		cache.set( 'anotherKey', 'Hello Couchbase', 1 );
+		
+		results = cache.getObjectStore().get( "anotherKey" );
+		
+		assertTrue( len( results ) );
+		assertFalse( findNocase( "converted", results ) );
+		
+		
+	}
+	
 }
