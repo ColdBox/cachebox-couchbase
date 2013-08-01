@@ -171,4 +171,18 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		assertFalse( r.isExpired );
 	}
 	
+	function testGetKeys(){
+		f = cache.getObjectStore().set( "unittestkey", 500, 'Test Data' );
+		f.get();
+		results = cache.getKeys();
+		assertTrue( arrayFindNoCase( results, "unittestkey" ) );
+	}
+	
+	function testgetStoreMetadataReport(){
+		f = cache.getObjectStore().set( "unittestkey", 500, 'Test Data' );
+		f.get();
+		r = cache.getStoreMetadataReport();
+		assertTrue( arrayFindNoCase( structKeyArray( r ), "unittestkey" ) );
+	}
+	
 }

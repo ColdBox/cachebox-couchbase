@@ -21,7 +21,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			// provider name
 			name 				= "",
 			// Java SDK for Couchbase
-			CouchBaseClient 	= "",
+			couchBaseClient 	= "",
 			// provider enable flag
 			enabled 			= false,
 			// reporting enabled flag
@@ -280,14 +280,15 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	
 	/**
     * get the cache's metadata report
+    * @tested
     */
     any function getStoreMetadataReport() output="false" {	
 		var md 		= {};
 		var keys 	= getKeys();
 		var item	= "";
 		
-		for(item in keys){
-			md[item] = getCachedObjectMetadata(item);
+		for( item in keys ){
+			md[ item ] = getCachedObjectMetadata( item );
 		}
 		
 		return md;
@@ -295,6 +296,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	
 	/**
 	* Get a key lookup structure where cachebox can build the report on. Ex: [timeout=timeout,lastAccessTimeout=idleTimeout].  It is a way for the visualizer to construct the columns correctly on the reports
+	* @tested
 	*/
 	any function getStoreMetadataKeyMap() output="false"{
 		var keyMap = {
@@ -310,6 +312,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	
 	/**
     * get all the keys in this provider
+    * @tested
     */
     any function getKeys() output="false" {
     	
@@ -318,55 +321,41 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		// The only reason I'm try/catching this is that the Java exception has an object for the 'type
 		// which makes ColdBox's error handing blow up since it tries to use the type as a string.
     	try{
-	    	local.allView = getCouchBaseClient().getView('CacheBox_allKeys','allKeys');
-	    	local.query = getJavaLoader().create("com.couchbase.client.protocol.views.Query").init();
-	    	local.StaleClass = getJavaLoader().create("com.couchbase.client.protocol.views.Stale");
+	    	local.allView 		= getCouchBaseClient().getView('CacheBox_allKeys', 'allKeys');
+	    	local.query 		= getJavaLoader().create("com.couchbase.client.protocol.views.Query").init();
+	    	local.staleClass 	= getJavaLoader().create("com.couchbase.client.protocol.views.Stale");
 	    	// Just return the keys, not the docs
-	    	local.query.setIncludeDocs(false);
+	    	local.query.setIncludeDocs( false );
 	    	// request fresh data
-	    	local.query.setStale(local.StaleClass.FALSE);
-	    	local.response = getCouchBaseClient().query(local.allView,local.query);
+	    	local.query.setStale( local.StaleClass.FALSE );
+	    	// query the view
+	    	local.response = getCouchBaseClient().query( local.allView, local.query );
 		}
 		catch(any e) {
+			// log original error.
+			instance.logger.error("View Exception: #e.message# #e.detail#", e );
 			// Rethrow the error
 			throw(message=e.message, detail=e.detail, type="couchbase.view.exception");
 		}
 		
     	// Were there errors
-    	if(arrayLen(local.response.getErrors())){
+    	if( arrayLen( local.response.getErrors() ) ){
     		// This will log only and not throw an exception
     		// PLEASE NOTE, the response received may not include all documents if one or more nodes are offline 
 	    	// and not yet failed over.  CouchBase basically sends back what docs it _can_ access and ignores the other nodes.
-    		handleRowErrors('There was an error executing the view allKeys',local.response.getErrors());
+    		handleRowErrors( 'There was an error executing the view allKeys', local.response.getErrors() );
     	}
     	
     	local.iterator = local.response.iterator();
     	local.results = [];
     	
     	while(local.iterator.hasNext()) {
-    		arrayAppend(local.results,local.iterator.next().getId());
+    		arrayAppend( local.results, local.iterator.next().getId() );
     	}
     	
     	return local.results;
 	}
 	
-	/**
-    * Deal with errors that came back from the cluster
-    * rowErrors is an array of com.couchbase.client.protocol.views.RowError
-    */
-    void function handleRowErrors(message, rowErrors) {
-    	local.detail = '';
-    	for(local.error in arguments.rowErrors) {
-    		local.detail &= local.error.getFrom();
-    		local.detail &= local.error.getReason();
-    	}
-    	
-    	// It appears that there is still a useful result even if errors were returned so
-    	// we'll just log it and not interrupt the request by throwing.  
-    	instance.logger.warn(arguments.message, local.detail);
-    	//Throw(message=arguments.message, detail=local.detail);
-    }
-    
 	/**
     * Ensure that a view exists on the cluster
     * http://tugdualgrall.blogspot.com/2012/12/couchbase-101-create-views-mapreduce.html
@@ -378,12 +367,14 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     	// CouchBase doesn't provide a way to check for DesignDocuments, so try to retrieve it and catch the error.
     	// This should only error the first time and will run successfully every time after.
     	try {
-    		getCouchBaseClient().getDesignDocument(local.designDocumentName);	
+    		getCouchBaseClient().getDesignDocument( local.designDocumentName );	
     	}
     	catch('com.couchbase.client.protocol.views.InvalidViewException' e) {
     		
     		// Create it    		
-			local.designDocument = getJavaLoader().create("com.couchbase.client.protocol.views.DesignDocument").init(local.designDocumentName);
+			local.designDocument = getJavaLoader()
+				.create( "com.couchbase.client.protocol.views.DesignDocument" )
+				.init( local.designDocumentName );
 
 			// If we start using other views, this function will need to be dynamic based on the view.
 			local.mapFunction = '
@@ -392,22 +383,24 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			}';
 			
 			// If using reduce function, pass it as third parameter.
-			local.viewDesign = getJavaLoader().create("com.couchbase.client.protocol.views.ViewDesign").init(arguments.viewName,local.mapFunction);
-			local.designDocument.getViews().add(local.viewDesign);
-			getCouchBaseClient().createDesignDoc(local.designDocument);
+			local.viewDesign = getJavaLoader()
+				.create( "com.couchbase.client.protocol.views.ViewDesign" )
+				.init( arguments.viewName, local.mapFunction );
+			local.designDocument.getViews().add( local.viewDesign );
+			getCouchBaseClient().createDesignDoc( local.designDocument );
     		
     		// View creation and population is asynchronous so we'll wait a while until it's ready
 			local.attempts = 0;
 			while(++attempts <= 5) {
 				try {
 					// Access the view
-			    	local.allView = getClient().getView(local.designDocumentName,arguments.viewName);
-			    	local.query = getJavaLoader().create("com.couchbase.client.protocol.views.Query").init();
-			    	local.StaleClass = getJavaLoader().create("com.couchbase.client.protocol.views.Stale");
-			    	local.query.setIncludeDocs(false);
+			    	local.allView 		= getClient().getView(local.designDocumentName,arguments.viewName);
+			    	local.query 		= getJavaLoader().create("com.couchbase.client.protocol.views.Query").init();
+			    	local.staleClass 	= getJavaLoader().create("com.couchbase.client.protocol.views.Stale");
+			    	local.query.setIncludeDocs( false );
 			    	// This will force a re-index
-			    	local.query.setStale(local.StaleClass.FALSE);
-			    	getClient().query(local.allView,local.query);
+			    	local.query.setStale( local.StaleClass.FALSE );
+			    	getClient().query( local.allView, local.query );
 				}
 				catch(Any e) {
 					// Wait a bit before trying again
@@ -605,7 +598,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		
 		// create storage element
 		var sElement = {
-			createdDate = now(),
+			createdDate = dateformat( now(), "mm/dd/yyyy") & " " & timeformat( now(), "full" ),
 			timeout = arguments.timeout,
 			metadata = ( structKeyExists( arguments.extra, "metadata" ) ? arguments.extra.metadata : {} ),
 			isSimple = isSimpleValue( arguments.object ),
@@ -807,5 +800,24 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	private boolean function isTimeoutException(required any exception){
     	return (exception.type == 'net.spy.memcached.OperationTimeoutException' || exception.message == 'Exception waiting for value' || exception.message == 'Interrupted waiting for value');
 	}
+	
+	/**
+    * Deal with errors that came back from the cluster
+    * rowErrors is an array of com.couchbase.client.protocol.views.RowError
+    */
+    private any function handleRowErrors(message, rowErrors) {
+    	local.detail = '';
+    	for(local.error in arguments.rowErrors) {
+    		local.detail &= local.error.getFrom();
+    		local.detail &= local.error.getReason();
+    	}
+    	
+    	// It appears that there is still a useful result even if errors were returned so
+    	// we'll just log it and not interrupt the request by throwing.  
+    	instance.logger.warn(arguments.message, local.detail);
+    	//Throw(message=arguments.message, detail=local.detail);
+    	
+    	return this;
+    }
 
 }
