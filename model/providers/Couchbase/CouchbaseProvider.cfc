@@ -12,11 +12,6 @@ cluster of Couchbase nodes for a distributed and highly scalable cache store.
 */
 component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 
-	// This flag will be added to the beginning of any complex value that was serialized 
-	// so the provider knows to deserialize it.  There is overhead in serialization, so we
-	// will be avoiding it where possible with any simple values that are stored.
-	this.CONVERTED_FLAG = '___CONVERTED___';
-
 	/**
     * Constructor
     */
@@ -50,11 +45,11 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			// Java URI class
 			URIClass 			= createObject("java", "java.net.URI"),
 			// Java Time Units
-			TimeUnitClass 		= createObject("java", "java.util.concurrent.TimeUnit"),
+			timeUnitClass 		= createObject("java", "java.util.concurrent.TimeUnit"),
 			// For serialization of complex values
 			converter			= createObject("component","coldbox.system.core.conversion.ObjectMarshaller").init(),
 			// Core ColdBox JavaLoader will be used to load the Jars.  Wait to init until the configure() method
-			JavaLoader			= CreateObject("component","coldbox.system.core.javaloader.JavaLoader")
+			javaLoader			= CreateObject("component","coldbox.system.core.javaloader.JavaLoader")
 		};
 		
 		// Provider Property Defaults
@@ -149,58 +144,6 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     */
     any function getJavaLoader() {
 		return instance.JavaLoader;
-	}
-	
-	/**
-	* Validate the incoming configuration and make necessary defaults
-	**/
-	private void function validateConfiguration() output="false"{
-		var cacheConfig = getConfiguration();
-		var key			= "";
-		
-		// Validate configuration values, if they don't exist, then default them to DEFAULTS
-		for(key in instance.DEFAULTS){
-			if( NOT structKeyExists( cacheConfig, key) OR ( isSimpleValue( cacheConfig[ key ] ) AND NOT len( cacheConfig[ key ] ) ) ){
-				cacheConfig[ key ] = instance.DEFAULTS[ key ];
-			}
-			
-			// Force servers to be an array even if there's only one and ensure proper URI format
-			if( key == 'servers' ) {
-				cacheConfig[ key ] = formatServers( cacheConfig[ key ] );
-			}
-			
-		}
-	}
-	
-	/**
-    * Format the incoming simple couchbas server URL location strings into our format
-    */
-    private array function formatServers(required servers) {
-    	var i = 0;
-    	
-		if( !isArray( servers ) ){
-			servers = listToArray( servers );
-		}
-				
-		// Massage server URLs to be "PROTOCOL://host:port/pools/"
-		while(++i <= arrayLen( servers ) ){
-			
-			// Add protocol if neccessary
-			if( !findNoCase( "http",servers[ i ] ) ){
-				servers[ i ] = "http://" & servers[ i ];
-			}
-			
-			// Strip trailing slash via regex, its fast
-			servers[ i ] = reReplace( servers[ i ], "/$", "");
-			
-			// Add directory
-			if( right( servers[ i ], 6 ) != '/pools' ){
-				servers[ i ] &= '/pools';
-			}
-			
-		} // end server loop
-		
-		return servers;
 	}
 	
 	/**
@@ -480,6 +423,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	
 	/**
     * get an object's cached metadata
+    * @tested
     */
     any function getCachedObjectMetadata(required any objectKey) output="false" {
     	// lower case the keys for case insensitivity
@@ -536,7 +480,15 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * @tested
     */
     any function get(required any objectKey) output="false" {
-    	// lower case the keys for case insensitivity
+    	return getQuiet(argumentCollection=arguments);
+	}
+	
+	/**
+    * get an item silently from cache, no stats advised: Stats not available on Couchbase
+    * @tested
+    */
+    any function getQuiet(required any objectKey) output="false" {
+		// lower case the keys for case insensitivity
 		arguments.objectKey = lcase( arguments.objectKey );
 		
 		try {
@@ -548,15 +500,25 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 				return;
 			}
 			
-			local.convertedFlagLength = len( this.CONVERTED_FLAG );
-			// If the stored value had been converted
-			if( len( local.object ) > local.convertedFlagLength && left( local.object, local.convertedFlagLength ) == this.CONVERTED_FLAG) {
-				// Strip out the converted flag and deserialize.
-				local.object = mid( local.object, local.convertedFlagLength+1, len( local.object ) - local.convertedFlagLength );
-				return instance.converter.deserializeObject(binaryObject=local.object);
+			// return if not our JSON
+			if( !isJSON( local.object ) ){
+				return local.object;
 			}
 			
-			// If was a simple value
+			// inflate our object from JSON
+			local.inflatedElement = deserializeJSON( local.object );
+			
+			// Is simple or not?
+			if( structKeyExists( local.inflatedElement, "isSimple" ) and local.inflatedElement.isSimple ){
+				return local.inflatedElement.data;
+			}
+			
+			// else we deserialize and return
+			if( structKeyExists( local.inflatedElement, "data" ) ){
+				return instance.converter.deserializeObject(binaryObject=local.inflatedElement.data);
+			}
+			
+			// who knows what this is?
 			return local.object;
 		}
 		catch(any e) {
@@ -571,15 +533,6 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			// For any other type of exception, rethrow.
 			rethrow;
 		}
-	}
-	
-	/**
-    * get an item silently from cache, no stats advised: Stats not available on Couchbase
-    * @tested
-    */
-    any function getQuiet(required any objectKey) output="false" {
-		// "quiet" not implemented by Couchbase yet
-		return get(argumentCollection=arguments);
 	}
 	
 	/**
@@ -650,20 +603,32 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		// "quiet" "not implemented by Couchbase yet
 		var future = "";
 		
-		if( !isSimpleValue( arguments.object ) ){
-			arguments.object = this.CONVERTED_FLAG & instance.converter.serializeObject( arguments.object );
+		// create storage element
+		var sElement = {
+			createdDate = now(),
+			timeout = arguments.timeout,
+			metadata = ( structKeyExists( arguments.extra, "metadata" ) ? arguments.extra.metadata : {} ),
+			isSimple = isSimpleValue( arguments.object ),
+			data = ""
+		};
+		
+		// Do we need to serialize incoming obj
+		if( sElement.isSimple ){
+			sElement.data = instance.converter.serializeObject( arguments.object );
 		}
+		// Serialize element to JSON
+		sElement = serializeJSON( sElement );
 
     	try {
     		
 			// You can pass in a net.spy.memcached.transcoders.Transcoder to override the default
 			if( structKeyExists( arguments, 'extra' ) && structKeyExists( arguments.extra, 'transcoder' ) ){
 				future = getCouchBaseClient()
-					.set( javaCast( "string", arguments.objectKey ), javaCast( "int", arguments.timeout*60 ), arguments.object, extra.transcoder );
+					.set( javaCast( "string", arguments.objectKey ), javaCast( "int", arguments.timeout*60 ), sElement, extra.transcoder );
 			}
 			else {
 				future = getCouchBaseClient()
-					.set( javaCast( "string", arguments.objectKey ), javaCast( "int",arguments.timeout*60 ), arguments.object);
+					.set( javaCast( "string", arguments.objectKey ), javaCast( "int",arguments.timeout*60 ), sElement );
 			}
 		
 		}
@@ -786,6 +751,58 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	}
 
 	/************************************** PRIVATE *********************************************/
+	
+	/**
+	* Validate the incoming configuration and make necessary defaults
+	**/
+	private void function validateConfiguration() output="false"{
+		var cacheConfig = getConfiguration();
+		var key			= "";
+		
+		// Validate configuration values, if they don't exist, then default them to DEFAULTS
+		for(key in instance.DEFAULTS){
+			if( NOT structKeyExists( cacheConfig, key) OR ( isSimpleValue( cacheConfig[ key ] ) AND NOT len( cacheConfig[ key ] ) ) ){
+				cacheConfig[ key ] = instance.DEFAULTS[ key ];
+			}
+			
+			// Force servers to be an array even if there's only one and ensure proper URI format
+			if( key == 'servers' ) {
+				cacheConfig[ key ] = formatServers( cacheConfig[ key ] );
+			}
+			
+		}
+	}
+	
+	/**
+    * Format the incoming simple couchbas server URL location strings into our format
+    */
+    private array function formatServers(required servers) {
+    	var i = 0;
+    	
+		if( !isArray( servers ) ){
+			servers = listToArray( servers );
+		}
+				
+		// Massage server URLs to be "PROTOCOL://host:port/pools/"
+		while(++i <= arrayLen( servers ) ){
+			
+			// Add protocol if neccessary
+			if( !findNoCase( "http",servers[ i ] ) ){
+				servers[ i ] = "http://" & servers[ i ];
+			}
+			
+			// Strip trailing slash via regex, its fast
+			servers[ i ] = reReplace( servers[ i ], "/$", "");
+			
+			// Add directory
+			if( right( servers[ i ], 6 ) != '/pools' ){
+				servers[ i ] &= '/pools';
+			}
+			
+		} // end server loop
+		
+		return servers;
+	}
 	
 	private boolean function isTimeoutException(required any exception){
     	return (exception.type == 'net.spy.memcached.OperationTimeoutException' || exception.message == 'Exception waiting for value' || exception.message == 'Interrupted waiting for value');

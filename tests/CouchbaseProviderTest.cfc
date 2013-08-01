@@ -82,7 +82,7 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		testVal = {name="luis", age=32};
 		cache.getObjectStore().set( "unittestkey", 500, serializeJSON( testVal ) );
 		
-		results = cache.get( 'unitTestKey' );
+		results = cache.get( 'unittestkey' );
 		assertEquals( testVal, deserializeJSON( results ) );
 	}
 	
@@ -139,13 +139,13 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		results = cache.getObjectStore().get( "unittestkey" );
 		
 		assertTrue( len( results ) );
-		assertTrue( findNocase( "converted", results ) );
+		assertTrue( isJSON( results ) );
 		
 		// simple values with different cases
 		cache.setQuiet( 'anotherKey', 'Hello Couchbase', 1 );
 		results = cache.getObjectStore().get( "anotherkey" );
 		assertTrue( len( results ) );
-		assertFalse( findNocase( "converted", results ) );
+		assertTrue( isJSON( results ) );
 	}
 	
 	function testSet(){
@@ -156,20 +156,19 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		results = cache.getObjectStore().get( "unittestkey" );
 		
 		assertTrue( len( results ) );
-		assertTrue( findNocase( "converted", results ) );
+		assertTrue( isJSON( results ) );
 		
 		// simple values with different cases
 		cache.set( 'anotherKey', 'Hello Couchbase', 1 );
 		results = cache.getObjectStore().get( "anotherkey" );
 		assertTrue( len( results ) );
-		assertFalse( findNocase( "converted", results ) );
+		assertTrue( isJSON( results ) );
 	}
 	
 	function testGetCachedObjectMetadata(){
 		cache.getObjectStore().set( "unittestkey", 500, 'Test Data' );
 		r = cache.getCachedObjectMetadata( 'unittestkey' );
-		writeDump( r );abort;
-		
+		assertFalse( r.isExpired );
 	}
 	
 }
