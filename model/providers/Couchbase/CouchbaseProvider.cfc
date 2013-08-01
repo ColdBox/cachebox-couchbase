@@ -482,34 +482,55 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * get an object's cached metadata
     */
     any function getCachedObjectMetadata(required any objectKey) output="false" {
-    	
+    	// lower case the keys for case insensitivity
+		arguments.objectKey = lcase( arguments.objectKey );
+		
+		// prepare stats map
     	local.keyStats = {
-				timeout = "",
-				LastAccessed = "",
-				timeExpires = "",
-				isExpired = 0,
-				NOT_SUPPORTED = ""
-			};
+			timeout = "",
+			lastAccessed = "",
+			timeExpires = "",
+			isExpired = 0,
+			isDirty = 0,
+			cas = ""
+		};
     	
-    	// Get stats for this key
-    	local.stats = getCouchBaseClient().getKeyStats(objectKey).get();
-    	if(structKeyExists(local,"stats")) {
+    	// Get stats for this key from the returned java future
+    	local.stats = getCouchBaseClient().getKeyStats( objectKey ).get();
+    	if( structKeyExists( local, "stats" ) ){
     		
-    		local.key_exptime =  iif(structKeyExists(local.stats,"key_exptime"), "local.stats['key_exptime']",  0);
-    		
-    		// These are opoch times.  Seconds since 1/1/1970 UTC
-    		if(val(local.key_exptime)) {
-    			// last access and expire time is epoch seconds added to 1/1/1970 and converted to local time  
-    			local.keyStats.timeExpires = DateAdd("s", local.key_exptime ,DateConvert("utc2Local", "January 1 1970 00:00"));
+    		// key_exptime
+    		if( structKeyExists( local.stats, "key_exptime" ) and isNumeric( local.stats[ "key_exptime" ] ) ){
+    			local.keyStats.timeExpires = dateAdd("s", local.stats[ "key_exptime" ], dateConvert( "utc2Local", "January 1 1970 00:00" ) );
+    			local.keyStats.timeout = dateDiff( "n", local.keyStats.timeExpires, now() ); 
     		}
-			
+    		// key_last_modification_time
+    		if( structKeyExists( local.stats, "key_last_modification_time" ) and isNumeric( local.stats[ "key_last_modification_time" ] ) ){
+    			local.keyStats.lastAccessed = dateAdd("s", local.stats[ "key_last_modification_time" ], dateConvert( "utc2Local", "January 1 1970 00:00" ) ); 
+    		}
+    		// state
+    		if( structKeyExists( local.stats, "key_vb_state" ) ){
+    			local.keyStats.isExpired = ( local.stats[ "key_vb_state" ] eq "active" ? false : true ); 
+    		}
+    		// dirty
+			if( structKeyExists( local.stats, "key_is_dirty" ) ){
+    			local.keyStats.isDirty = local.stats[ "key_is_dirty" ]; 
+    		}
+    		// cas
+			if( structKeyExists( local.stats, "key_cas" ) ){
+    			local.keyStats.cas = local.stats[ "key_cas" ]; 
+    		}
+    		
     	}
+    	
+    	writeDump(local);abort;
     	
     	return local.keyStats;
 	}
 	
 	/**
-    * get an item from cache
+    * get an item from cache, returns null if not found.
+    * @tested
     */
     any function get(required any objectKey) output="false" {
     	// lower case the keys for case insensitivity
@@ -551,6 +572,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	
 	/**
     * get an item silently from cache, no stats advised: Stats not available on Couchbase
+    * @tested
     */
     any function getQuiet(required any objectKey) output="false" {
 		// "quiet" not implemented by Couchbase yet
@@ -566,6 +588,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	 
 	/**
     * check if object in cache
+    * @tested
     */
     any function lookup(required any objectKey) output="false" {
     	return ( isNull( get( objectKey ) ) ? false : true );
@@ -573,6 +596,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	
 	/**
     * check if object in cache with no stats: Stats not available on Couchbase
+    * @tested
     */
     any function lookupQuiet(required any objectKey) output="false" {
 		// not possible yet on Couchbase
@@ -582,6 +606,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	/**
     * set an object in cache and returns an object future if possible
     * lastAccessTimeout.hint Not used in this provider
+    * @tested
     */
     any function set(required any objectKey,
 					 required any object,
@@ -608,6 +633,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	/**
     * set an object in cache with no advising to events, returns a couchbase future if possible
     * lastAccessTimeout.hint Not used in this provider
+    * @tested
     */
     any function setQuiet(required any objectKey,
 						  required any object,
