@@ -167,15 +167,10 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			lock name="#instance.javaLoaderID#" throwOnTimeout="true" timeout="15" type="exclusive"{
 				if( ! structKeyExists( server, instance.javaLoaderID ) ){
 					// Create and load
-					server[ instance.javaLoaderID ] = new coldbox.system.core.javaloader.JavaLoader( arguments.paths );
+					server[ instance.javaLoaderID ] = new coldbox.system.core.javaloader.JavaLoader( arguments.paths ).init( arguments.paths );
 				}
 			} 
 		} // end if static server check
-		else{
-			lock name="#instance.javaLoaderID#" throwOnTimeout="true" timeout="15" type="readonly"{
-				server[ instance.javaLoaderID ].init( arguments.paths );
-			}
-		}
 	}
 	
 	/**
