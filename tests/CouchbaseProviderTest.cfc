@@ -112,7 +112,7 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		cache.getObjectStore().set( "unitTestKey", 500, 'Testing' );
 		cache.expireAll();
 		// wait for async operation
-		sleep( 1000 );
+		sleep( 1500 );
 		assertEquals( 0, cache.getSize() );
 	}
 	

@@ -20,6 +20,8 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		instance = {
 			// provider name
 			name 				= "",
+			// provider version
+			version				= "1.0",
 			// Java SDK for Couchbase
 			couchBaseClient 	= "",
 			// provider enable flag
@@ -48,9 +50,12 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			timeUnitClass 		= createObject("java", "java.util.concurrent.TimeUnit"),
 			// For serialization of complex values
 			converter			= createObject("component","coldbox.system.core.conversion.ObjectMarshaller").init(),
-			// Core ColdBox JavaLoader will be used to load the Jars.  Wait to init until the configure() method
-			javaLoader			= CreateObject("component","coldbox.system.core.javaloader.JavaLoader")
+			// JavaLoader Static ID
+			javaLoaderID 		= ""
 		};
+		
+		// JavaLoader set static ID
+		instance.javaLoaderID = "couchbase-provider-#instance.version#-laoder";
 		
 		// Provider Property Defaults
 		instance.DEFAULTS = {
@@ -143,7 +148,27 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * get the JavaLoader
     */
     any function getJavaLoader() {
-		return instance.JavaLoader;
+		return server[ instance.javaLoaderID ];
+	}
+	
+	/**
+	* Load JavaLoader
+	*/
+	private function loadJavaLoader(required paths){
+		// verify if not in server scope
+		if( ! structKeyExists( server, instance.javaLoaderID ) ){
+			lock name="#instance.javaLoaderID#" throwOnTimeout="true" timeout="15" type="exclusive"{
+				if( ! structKeyExists( server, instance.javaLoaderID ) ){
+					// Create and load
+					server[ instance.javaLoaderID ] = new coldbox.system.core.javaloader.JavaLoader( arguments.paths );
+				}
+			} 
+		} // end if static server check
+		else{
+			lock name="#instance.javaLoaderID#" throwOnTimeout="true" timeout="15" type="readonly"{
+				server[ instance.javaLoaderID ].init( arguments.paths );
+			}
+		}
 	}
 	
 	/**
@@ -169,8 +194,8 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			validateConfiguration();
 		
 			try{
-				// Load up the jars from their path
-				getJavaLoader().init([
+				// Load up javaLoader
+				loadJavaLoader( [
 					'#config.jarPath#commons-codec-1.5.jar',
 					'#config.jarPath#couchbase-client-1.1.7.jar',
 					'#config.jarPath#httpcore-4.1.1.jar',
@@ -194,18 +219,18 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 				}
 				
 				// Create a connection factory builder
-				CouchbaseConnectionFactoryBuilder = getJavaLoader().create("com.couchbase.client.CouchbaseConnectionFactoryBuilder").init();
+				couchbaseConnectionFactoryBuilder = getJavaLoader().create("com.couchbase.client.CouchbaseConnectionFactoryBuilder").init();
 				
 				// Set out timeouts into the factory builder
-		        CouchbaseConnectionFactoryBuilder.setOpQueueMaxBlockTime( config.opQueueMaxBlockTime );
-		        CouchbaseConnectionFactoryBuilder.setOpTimeout( config.opTimeout );
-		        CouchbaseConnectionFactoryBuilder.setTimeoutExceptionThreshold( config.timeoutExceptionThreshold );        
+		        couchbaseConnectionFactoryBuilder.setOpQueueMaxBlockTime( config.opQueueMaxBlockTime );
+		        couchbaseConnectionFactoryBuilder.setOpTimeout( config.opTimeout );
+		        couchbaseConnectionFactoryBuilder.setTimeoutExceptionThreshold( config.timeoutExceptionThreshold );        
 		        
 		        // Build our connection factory with the defaults we set above
-				CouchbaseConnectionFactory = CouchbaseConnectionFactoryBuilder.buildCouchbaseConnection( URIs, config.bucket, config.password );
+				couchbaseConnectionFactory = CouchbaseConnectionFactoryBuilder.buildCouchbaseConnection( URIs, config.bucket, config.password );
 		        				
 		        // Create actual client class.  
-				CouchBaseClientClass = getJavaLoader().create("com.couchbase.client.CouchbaseClient");
+				couchBaseClientClass = getJavaLoader().create("com.couchbase.client.CouchbaseClient");
 			}
 			catch(any e) {
 				e.printStackTrace();
