@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<project name="build" basedir="." default="do.archive">
+	<!-- dynamic values for build -->
+	<tstamp prefix="start"/>
+	<property name="project.name"	value="CacheBox.Couchbase" />
+	<property name="app.root"		value="model/providers/Couchbase" />
+	<property name="src.docs"		value="http://wiki.coldbox.org/wiki/CacheBox-Couchbase/HTML.cfm" />
+	
+	<!-- Init -->
+	<target name="init" description="Init">
+		<!-- Version -->
+		<input addproperty="version" message="Version" />
+		<delete dir="build" />
+		<mkdir dir="build" />
+	</target>
+
+	<target name="cleanALL">
+  		<delete>
+  			<fileset dir="." includes="${project.name}-*.zip"/>
+		</delete>
+	</target>
+		
+	<target name="do.archive" depends="init,cleanALL">
+		<!-- Copy root Assets -->
+		<copy file="README.md" tofile="build/README.md" overwrite="true" />
+		<copy file="APACHE_LICENSE.TXT" tofile="build/APACHE_LICENSE.TXT" overwrite="true" />
+		<copy file="license.txt" tofile="build/license.txt" overwrite="true" />
+		
+		<!-- Copy source -->
+		<copy todir="build/Couchbase">
+			<fileset dir="${app.root}" />
+		</copy>
+		
+		<!-- Try Docs -->
+		<mkdir dir="build/docs" />
+		<get dest="build/docs/index.html" src="${src.docs}" verbose="true"/>
+		
+		<!-- Zip it -->
+		<zip destfile="${project.name}_${version}.zip">
+			<fileset dir="build">
+				<exclude name="build.xml"/>
+				<exclude name="java/**"/>
+				<exclude name=".DS_Store"/>
+			</fileset>
+		</zip>
+		
+		<!-- Cleanup -->
+		<delete dir="build" />
+	</target>
+
+</project>

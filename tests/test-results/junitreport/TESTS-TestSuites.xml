@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites>
+  <testsuite errors="0" failures="0" hostname="127.0.0.1" id="0" name="testresults" package="mxunit" tests="41" time="13.629" timestamp="08/02/13 2:12:55 PM">
+    <properties>
+      <property name="PRODUCTLEVEL" value="Developer" />
+      <property name="EXPIRATION" value="{ts &apos;2013-08-01 16:02:20&apos;}" />
+      <property name="ROOTDIR" value="/Applications/ColdFusion10/cfusion" />
+      <property name="PRODUCTNAME" value="ColdFusion Server" />
+      <property name="PRODUCTVERSION" value="10,0,10,284825" />
+      <property name="INSTALLKIT" value="Native UNIX" />
+      <property name="SUPPORTEDLOCALES" value="Chinese (China),Chinese (Hong Kong),Chinese (Taiwan),Dutch (Belgian),Dutch (Standard),English (Australian),English (Canadian),English (New Zealand),English (UK),English (US),French (Belgian),French (Canadian),French (Standard),French (Swiss),German (Austrian),German (Standard),German (Swiss),Italian (Standard),Italian (Swiss),Japanese,Korean,Norwegian (Bokmal),Norwegian (Nynorsk),Portuguese (Brazilian),Portuguese (Standard),Spanish (Mexican),Spanish (Modern),Spanish (Standard),Swedish,ar,ar_AE,ar_BH,ar_DZ,ar_EG,ar_IQ,ar_JO,ar_KW,ar_LB,ar_LY,ar_MA,ar_OM,ar_QA,ar_SA,ar_SD,ar_SY,ar_TN,ar_YE,be,be_BY,bg,bg_BG,ca,ca_ES,cs,cs_CZ,da,da_DK,de,de_AT,de_CH,de_DE,de_LU,el,el_CY,el_GR,en,en_AU,en_CA,en_GB,en_IE,en_IN,en_MT,en_NZ,en_PH,en_SG,en_US,en_ZA,es,es_AR,es_BO,es_CL,es_CO,es_CR,es_DO,es_EC,es_ES,es_GT,es_HN,es_MX,es_NI,es_PA,es_PE,es_PR,es_PY,es_SV,es_US,es_UY,es_VE,et,et_EE,fi,fi_FI,fr,fr_BE,fr_CA,fr_CH,fr_FR,fr_LU,ga,ga_IE,hi_IN,hr,hr_HR,hu,hu_HU,in,in_ID,is,is_IS,it,it_CH,it_IT,iw,iw_IL,ja,ja_JP,ja_JP_JP,ko,ko_KR,lt,lt_LT,lv,lv_LV,mk,mk_MK,ms,ms_MY,mt,mt_MT,nl,nl_BE,nl_NL,no,no_NO,no_NO_NY,pl,pl_PL,pt,pt_BR,pt_PT,ro,ro_RO,ru,ru_RU,sk,sk_SK,sl,sl_SI,sq,sq_AL,sr,sr_BA,sr_CS,sr_ME,sr_RS,sv,sv_SE,th,th_TH,th_TH_TH,tr,tr_TR,uk,uk_UA,vi,vi_VN,zh,zh_CN,zh_HK,zh_SG,zh_TW" />
+      <property name="APPSERVER" value="J2EE" />
+      <property name="ADDITIONALINFORMATION" value="Mac OS X" />
+      <property name="ARCH" value="x86_64" />
+      <property name="VERSION" value="10.8.4" />
+      <property name="BUILDNUMBER" value="" />
+      <property name="NAME" value="Mac OS X" />
+      <property name="HTTP_USER_AGENT" value="Jakarta Commons-HttpClient/3.1" />
+      <property name="WEB_SERVER_API" value="" />
+      <property name="PATH_TRANSLATED" value="/Users/lmajano/Sites/cboxdev/core/codedepot/cachebox-couchbase/tests/resources/HttpAntRunner.cfc" />
+      <property name="CONTENT_TYPE" value="" />
+      <property name="HTTP_ACCEPT_LANGUAGE" value="" />
+      <property name="HTTP_REFERER" value="" />
+      <property name="HTTP_ACCEPT" value="" />
+      <property name="CERT_SERVER_ISSUER" value="" />
+      <property name="CERT_SERVER_SUBJECT" value="" />
+      <property name="HTTP_ACCEPT_ENCODING" value="" />
+      <property name="SERVER_SOFTWARE" value="Apache/2.2.22 (Unix) PHP/5.3.15 with Suhosin-Patch Resin/3.1.2 JRun/4.0 mod_jk/1.2.32 mod_ssl/2.2.22 OpenSSL/0.9.8x DAV/2 mod_perl/2.0.5 Perl/v5.12.4" />
+      <property name="SERVER_NAME" value="cf10cboxdev.jfetmac" />
+      <property name="CF_TEMPLATE_PATH" value="/Users/lmajano/Sites/cboxdev/core/codedepot/cachebox-couchbase/tests/resources/HttpAntRunner.cfc" />
+      <property name="CERT_FLAGS" value="" />
+      <property name="HTTPS_SERVER_ISSUER" value="" />
+      <property name="CONTEXT_PATH" value="" />
+      <property name="HTTP_COOKIE" value="" />
+      <property name="SERVER_PROTOCOL" value="HTTP/1.1" />
+      <property name="CERT_SECRETKEYSIZE" value="" />
+      <property name="REQUEST_METHOD" value="GET" />
+      <property name="HTTPS_SECRETKEYSIZE" value="" />
+      <property name="AUTH_PASSWORD" value="" />
+      <property name="HTTPS" value="off" />
+      <property name="CERT_SERIALNUMBER" value="" />
+      <property name="CERT_SUBJECT" value="" />
+      <property name="SERVER_PORT" value="80" />
+      <property name="CERT_KEYSIZE" value="" />
+      <property name="SCRIPT_NAME" value="/codedepot/cachebox-couchbase/tests/resources/HttpAntRunner.cfc" />
+      <property name="REMOTE_ADDR" value="127.0.0.1" />
+      <property name="SERVER_PORT_SECURE" value="0" />
+      <property name="REMOTE_HOST" value="127.0.0.1" />
+      <property name="HTTPS_KEYSIZE" value="" />
+      <property name="HTTP_HOST" value="cf10cboxdev.jfetmac" />
+      <property name="HTTP_CONNECTION" value="" />
+      <property name="AUTH_USER" value="" />
+      <property name="REMOTE_USER" value="" />
+      <property name="PATH_INFO" value="" />
+      <property name="QUERY_STRING" value="method=run&amp;type=dir&amp;value=/codedepot/cachebox-couchbase/tests/unit&amp;recurse=true&amp;excludes=null&amp;packageName=mxunit.testresults&amp;componentPath=codedepot.cachebox-couchbase.tests.unit" />
+      <property name="CERT_ISSUER" value="" />
+      <property name="CERT_COOKIE" value="" />
+      <property name="HTTPS_SERVER_SUBJECT" value="" />
+      <property name="GATEWAY_INTERFACE" value="" />
+      <property name="AUTH_TYPE" value="" />
+      <property name="CONTENT_LENGTH" value="0" />
+      <property name="CFID" value="9340" />
+      <property name="CFTOKEN" value="1a6f07ea34b87d14-88C0DBAA-0B4D-227F-E6BEAEA30B76AC3E" />
+      <property name="MXUNIT_SUMMARY" value="41,0,0,13629" />
+      <property name="__MXUNITINHERITANCETREE__" value="" />
+      <property name="__FUSIONREACTOR" value="Complex Data Type...Not Displaying" />
+      <property name="APPLICATIONNAME" value="TestingSuite313CFC362D10A6F06C7EE61F7AA03C64" />
+    </properties>
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testclearViewMulti" time="0.211" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testClearEventMulti" time="0.215" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testClearAllEvents" time="0.826" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testClearView" time="0.207" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testColdBox" time="0.208" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testclearAllViews" time="0.221" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testGetPrefixes" time="0.769" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testClearEvent" time="0.215" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testURLFacade" time="0.201" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testClearQuiet" time="0.781" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testSetQuiet" time="0.205" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testLookup" time="0.237" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testGetQuiet" time="0.761" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testGet" time="0.203" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testShutdown" time="0.214" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testGetKeys" time="0.862" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testGetSize" time="0.22" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testgetStoreMetadataReport" time="0.274" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testClear" time="0.202" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testLookupQuiet" time="0.807" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testExpireObject" time="0.204" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testSet" time="0.224" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testReap" time="0.762" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testGetCachedObjectMetadata" time="0.202" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseColdboxProviderTest" name="testExpireAll" time="0.204" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testClearQuiet" time="0.157" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testSetQuiet" time="0.823" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testLookup" time="0.173" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testGetQuiet" time="0.153" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testGet" time="0.147" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testShutdown" time="0.133" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testGetKeys" time="0.166" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testGetSize" time="0.753" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testgetStoreMetadataReport" time="0.154" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testClear" time="0.124" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testLookupQuiet" time="0.148" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testExpireObject" time="0.112" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testSet" time="0.107" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testReap" time="0.684" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testGetCachedObjectMetadata" time="0.227" />
+    <testcase classname="codedepot.cachebox-couchbase.tests.unit.CouchbaseProviderTest" name="testExpireAll" time="0.105" />
+  </testsuite>
+</testsuites>

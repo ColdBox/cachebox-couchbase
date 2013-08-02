@@ -76,7 +76,7 @@ SYSTEM REQUIREMENTS
 ********************************************************************************
 - Railo 3.0 and above
 - ColdFusion MX 9.X and above
-
+- Couchbase 2.0 and above
 
 
 ----

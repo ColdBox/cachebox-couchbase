@@ -1,0 +1,405 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html xmlns:lxslt="http://xml.apache.org/xslt" xmlns:stringutils="xalan://org.apache.tools.ant.util.StringUtils">
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Unit Test Results</title>
+<style type="text/css">
+      body {
+        font:normal 68% verdana,arial,helvetica;
+        color:#000000;
+      }
+      table tr td, table tr th {
+          font-size: 68%;
+      }
+      table.details tr th{
+        font-weight: bold;
+        text-align:left;
+        background:#a6caf0;
+      }
+      table.details tr td{
+        background:#eeeee0;
+      }
+
+      p {
+        line-height:1.5em;
+        margin-top:0.5em; margin-bottom:1.0em;
+      }
+      h1 {
+        margin: 0px 0px 5px; font: 165% verdana,arial,helvetica
+      }
+      h2 {
+        margin-top: 1em; margin-bottom: 0.5em; font: bold 125% verdana,arial,helvetica
+      }
+      h3 {
+        margin-bottom: 0.5em; font: bold 115% verdana,arial,helvetica
+      }
+      h4 {
+        margin-bottom: 0.5em; font: bold 100% verdana,arial,helvetica
+      }
+      h5 {
+        margin-bottom: 0.5em; font: bold 100% verdana,arial,helvetica
+      }
+      h6 {
+        margin-bottom: 0.5em; font: bold 100% verdana,arial,helvetica
+      }
+      .Error {
+        font-weight:bold; color:red;
+      }
+      .Failure {
+        font-weight:bold; color:purple;
+      }
+      .Properties {
+        text-align:right;
+      }
+      </style>
+<script type="text/javascript" language="JavaScript">
+        var TestCases = new Array();
+        var cur;
+        
+    cur = TestCases['mxunit.testresults'] = new Array();
+    
+        cur['__FUSIONREACTOR'] = 'Complex Data Type...Not Displaying';
+    
+        cur['__MXUNITINHERITANCETREE__'] = '';
+    
+        cur['ADDITIONALINFORMATION'] = 'Mac OS X';
+    
+        cur['APPLICATIONNAME'] = 'TestingSuite313CFC362D10A6F06C7EE61F7AA03C64';
+    
+        cur['APPSERVER'] = 'J2EE';
+    
+        cur['ARCH'] = 'x86_64';
+    
+        cur['AUTH_PASSWORD'] = '';
+    
+        cur['AUTH_TYPE'] = '';
+    
+        cur['AUTH_USER'] = '';
+    
+        cur['BUILDNUMBER'] = '';
+    
+        cur['CERT_COOKIE'] = '';
+    
+        cur['CERT_FLAGS'] = '';
+    
+        cur['CERT_ISSUER'] = '';
+    
+        cur['CERT_KEYSIZE'] = '';
+    
+        cur['CERT_SECRETKEYSIZE'] = '';
+    
+        cur['CERT_SERIALNUMBER'] = '';
+    
+        cur['CERT_SERVER_ISSUER'] = '';
+    
+        cur['CERT_SERVER_SUBJECT'] = '';
+    
+        cur['CERT_SUBJECT'] = '';
+    
+        cur['CF_TEMPLATE_PATH'] = '/Users/lmajano/Sites/cboxdev/core/codedepot/cachebox-couchbase/tests/resources/HttpAntRunner.cfc';
+    
+        cur['CFID'] = '9340';
+    
+        cur['CFTOKEN'] = '1a6f07ea34b87d14-88C0DBAA-0B4D-227F-E6BEAEA30B76AC3E';
+    
+        cur['CONTENT_LENGTH'] = '0';
+    
+        cur['CONTENT_TYPE'] = '';
+    
+        cur['CONTEXT_PATH'] = '';
+    
+        cur['EXPIRATION'] = '{ts \'2013-08-01 16:02:20\'}';
+    
+        cur['GATEWAY_INTERFACE'] = '';
+    
+        cur['HTTP_ACCEPT'] = '';
+    
+        cur['HTTP_ACCEPT_ENCODING'] = '';
+    
+        cur['HTTP_ACCEPT_LANGUAGE'] = '';
+    
+        cur['HTTP_CONNECTION'] = '';
+    
+        cur['HTTP_COOKIE'] = '';
+    
+        cur['HTTP_HOST'] = 'cf10cboxdev.jfetmac';
+    
+        cur['HTTP_REFERER'] = '';
+    
+        cur['HTTP_USER_AGENT'] = 'Jakarta Commons-HttpClient/3.1';
+    
+        cur['HTTPS'] = 'off';
+    
+        cur['HTTPS_KEYSIZE'] = '';
+    
+        cur['HTTPS_SECRETKEYSIZE'] = '';
+    
+        cur['HTTPS_SERVER_ISSUER'] = '';
+    
+        cur['HTTPS_SERVER_SUBJECT'] = '';
+    
+        cur['INSTALLKIT'] = 'Native UNIX';
+    
+        cur['MXUNIT_SUMMARY'] = '41,0,0,13629';
+    
+        cur['NAME'] = 'Mac OS X';
+    
+        cur['PATH_INFO'] = '';
+    
+        cur['PATH_TRANSLATED'] = '/Users/lmajano/Sites/cboxdev/core/codedepot/cachebox-couchbase/tests/resources/HttpAntRunner.cfc';
+    
+        cur['PRODUCTLEVEL'] = 'Developer';
+    
+        cur['PRODUCTNAME'] = 'ColdFusion Server';
+    
+        cur['PRODUCTVERSION'] = '10,0,10,284825';
+    
+        cur['QUERY_STRING'] = 'method=run&type=dir&value=/codedepot/cachebox-couchbase/tests/unit&recurse=true&excludes=null&packageName=mxunit.testresults&componentPath=codedepot.cachebox-couchbase.tests.unit';
+    
+        cur['REMOTE_ADDR'] = '127.0.0.1';
+    
+        cur['REMOTE_HOST'] = '127.0.0.1';
+    
+        cur['REMOTE_USER'] = '';
+    
+        cur['REQUEST_METHOD'] = 'GET';
+    
+        cur['ROOTDIR'] = '/Applications/ColdFusion10/cfusion';
+    
+        cur['SCRIPT_NAME'] = '/codedepot/cachebox-couchbase/tests/resources/HttpAntRunner.cfc';
+    
+        cur['SERVER_NAME'] = 'cf10cboxdev.jfetmac';
+    
+        cur['SERVER_PORT'] = '80';
+    
+        cur['SERVER_PORT_SECURE'] = '0';
+    
+        cur['SERVER_PROTOCOL'] = 'HTTP/1.1';
+    
+        cur['SERVER_SOFTWARE'] = 'Apache/2.2.22 (Unix) PHP/5.3.15 with Suhosin-Patch Resin/3.1.2 JRun/4.0 mod_jk/1.2.32 mod_ssl/2.2.22 OpenSSL/0.9.8x DAV/2 mod_perl/2.0.5 Perl/v5.12.4';
+    
+        cur['SUPPORTEDLOCALES'] = 'Chinese (China),Chinese (Hong Kong),Chinese (Taiwan),Dutch (Belgian),Dutch (Standard),English (Australian),English (Canadian),English (New Zealand),English (UK),English (US),French (Belgian),French (Canadian),French (Standard),French (Swiss),German (Austrian),German (Standard),German (Swiss),Italian (Standard),Italian (Swiss),Japanese,Korean,Norwegian (Bokmal),Norwegian (Nynorsk),Portuguese (Brazilian),Portuguese (Standard),Spanish (Mexican),Spanish (Modern),Spanish (Standard),Swedish,ar,ar_AE,ar_BH,ar_DZ,ar_EG,ar_IQ,ar_JO,ar_KW,ar_LB,ar_LY,ar_MA,ar_OM,ar_QA,ar_SA,ar_SD,ar_SY,ar_TN,ar_YE,be,be_BY,bg,bg_BG,ca,ca_ES,cs,cs_CZ,da,da_DK,de,de_AT,de_CH,de_DE,de_LU,el,el_CY,el_GR,en,en_AU,en_CA,en_GB,en_IE,en_IN,en_MT,en_NZ,en_PH,en_SG,en_US,en_ZA,es,es_AR,es_BO,es_CL,es_CO,es_CR,es_DO,es_EC,es_ES,es_GT,es_HN,es_MX,es_NI,es_PA,es_PE,es_PR,es_PY,es_SV,es_US,es_UY,es_VE,et,et_EE,fi,fi_FI,fr,fr_BE,fr_CA,fr_CH,fr_FR,fr_LU,ga,ga_IE,hi_IN,hr,hr_HR,hu,hu_HU,in,in_ID,is,is_IS,it,it_CH,it_IT,iw,iw_IL,ja,ja_JP,ja_JP_JP,ko,ko_KR,lt,lt_LT,lv,lv_LV,mk,mk_MK,ms,ms_MY,mt,mt_MT,nl,nl_BE,nl_NL,no,no_NO,no_NO_NY,pl,pl_PL,pt,pt_BR,pt_PT,ro,ro_RO,ru,ru_RU,sk,sk_SK,sl,sl_SI,sq,sq_AL,sr,sr_BA,sr_CS,sr_ME,sr_RS,sv,sv_SE,th,th_TH,th_TH_TH,tr,tr_TR,uk,uk_UA,vi,vi_VN,zh,zh_CN,zh_HK,zh_SG,zh_TW';
+    
+        cur['VERSION'] = '10.8.4';
+    
+        cur['WEB_SERVER_API'] = '';
+    </script><script type="text/javascript" language="JavaScript">
+        function displayProperties (name) {
+          var win = window.open('','JUnitSystemProperties','scrollbars=1,resizable=1');
+          var doc = win.document;
+          doc.open();
+          doc.write("<html><head><title>Properties of " + name + "</title>");
+          doc.write("<style>")
+          doc.write("body {font:normal 68% verdana,arial,helvetica; color:#000000; }");
+          doc.write("table tr td, table tr th { font-size: 68%; }");
+          doc.write("table.properties { border-collapse:collapse; border-left:solid 1 #cccccc; border-top:solid 1 #cccccc; padding:5px; }");
+          doc.write("table.properties th { text-align:left; border-right:solid 1 #cccccc; border-bottom:solid 1 #cccccc; background-color:#eeeeee; }");
+          doc.write("table.properties td { font:normal; text-align:left; border-right:solid 1 #cccccc; border-bottom:solid 1 #cccccc; background-color:#fffffff; }");
+          doc.write("h3 { margin-bottom: 0.5em; font: bold 115% verdana,arial,helvetica }");
+          doc.write("</style>");
+          doc.write("</head><body>");
+          doc.write("<h3>Properties of " + name + "</h3>");
+          doc.write("<div align=\"right\"><a href=\"javascript:window.close();\">Close</a></div>");
+          doc.write("<table class='properties'>");
+          doc.write("<tr><th>Name</th><th>Value</th></tr>");
+          for (prop in TestCases[name]) {
+            doc.write("<tr><th>" + prop + "</th><td>" + TestCases[name][prop] + "</td></tr>");
+          }
+          doc.write("</table>");
+          doc.write("</body></html>");
+          doc.close();
+          win.focus();
+        }
+      
+      </script>
+</head>
+<body>
+<a name="top"></a>
+<h1>Unit Test Results</h1>
+<table width="100%">
+<tr>
+<td align="left"></td><td align="right">Designed for use with <a href="http://www.junit.org">JUnit</a> and <a href="http://ant.apache.org/ant">Ant</a>.</td>
+</tr>
+</table>
+<hr size="1">
+<h2>Summary</h2>
+<table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
+<tr valign="top">
+<th>Tests</th><th>Failures</th><th>Errors</th><th>Success rate</th><th>Time</th>
+</tr>
+<tr valign="top" class="">
+<td>41</td><td>0</td><td>0</td><td>100.00%</td><td>13.629</td>
+</tr>
+</table>
+<table border="0" width="95%">
+<tr>
+<td style="text-align: justify;">
+        Note: <i>failures</i> are anticipated and checked for with assertions while <i>errors</i> are unanticipated.
+        </td>
+</tr>
+</table>
+<hr size="1" width="95%" align="left">
+<h2>Packages</h2>
+        Note: package statistics are not computed recursively, they only sum up all of its testsuites numbers.
+        <table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
+<tr valign="top">
+<th width="80%">Name</th><th>Tests</th><th>Errors</th><th>Failures</th><th nowrap>Time(s)</th><th nowrap>Time Stamp</th><th>Host</th>
+</tr>
+<tr valign="top" class="">
+<td><a href="#mxunit">mxunit</a></td><td>41</td><td>0</td><td>0</td><td>13.629</td><td>08/02/13 2:12:55 PM</td><td>127.0.0.1</td>
+</tr>
+</table>
+<hr size="1" width="95%" align="left">
+<a name="mxunit"></a>
+<h3>Package mxunit</h3>
+<table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
+<tr valign="top">
+<th width="80%">Name</th><th>Tests</th><th>Errors</th><th>Failures</th><th nowrap>Time(s)</th><th nowrap>Time Stamp</th><th>Host</th>
+</tr>
+<tr valign="top" class="">
+<td><a href="#testresults">testresults</a></td><td>41</td><td>0</td><td>0</td><td>13.629</td><td>08/02/13 2:12:55 PM</td><td>127.0.0.1</td>
+</tr>
+</table>
+<a href="#top">Back to top</a>
+<p></p>
+<p></p>
+<hr size="1" width="95%" align="left">
+<a name="testresults"></a>
+<h3>TestCase testresults</h3>
+<table class="details" border="0" cellpadding="5" cellspacing="2" width="95%">
+<tr valign="top">
+<th>Name</th><th>Status</th><th width="80%">Type</th><th nowrap>Time(s)</th>
+</tr>
+<tr valign="top" class="">
+<td>testclearViewMulti</td><td>Success</td><td></td><td>0.211</td>
+</tr>
+<tr valign="top" class="">
+<td>testClearEventMulti</td><td>Success</td><td></td><td>0.215</td>
+</tr>
+<tr valign="top" class="">
+<td>testClearAllEvents</td><td>Success</td><td></td><td>0.826</td>
+</tr>
+<tr valign="top" class="">
+<td>testClearView</td><td>Success</td><td></td><td>0.207</td>
+</tr>
+<tr valign="top" class="">
+<td>testColdBox</td><td>Success</td><td></td><td>0.208</td>
+</tr>
+<tr valign="top" class="">
+<td>testclearAllViews</td><td>Success</td><td></td><td>0.221</td>
+</tr>
+<tr valign="top" class="">
+<td>testGetPrefixes</td><td>Success</td><td></td><td>0.769</td>
+</tr>
+<tr valign="top" class="">
+<td>testClearEvent</td><td>Success</td><td></td><td>0.215</td>
+</tr>
+<tr valign="top" class="">
+<td>testURLFacade</td><td>Success</td><td></td><td>0.201</td>
+</tr>
+<tr valign="top" class="">
+<td>testClearQuiet</td><td>Success</td><td></td><td>0.781</td>
+</tr>
+<tr valign="top" class="">
+<td>testSetQuiet</td><td>Success</td><td></td><td>0.205</td>
+</tr>
+<tr valign="top" class="">
+<td>testLookup</td><td>Success</td><td></td><td>0.237</td>
+</tr>
+<tr valign="top" class="">
+<td>testGetQuiet</td><td>Success</td><td></td><td>0.761</td>
+</tr>
+<tr valign="top" class="">
+<td>testGet</td><td>Success</td><td></td><td>0.203</td>
+</tr>
+<tr valign="top" class="">
+<td>testShutdown</td><td>Success</td><td></td><td>0.214</td>
+</tr>
+<tr valign="top" class="">
+<td>testGetKeys</td><td>Success</td><td></td><td>0.862</td>
+</tr>
+<tr valign="top" class="">
+<td>testGetSize</td><td>Success</td><td></td><td>0.220</td>
+</tr>
+<tr valign="top" class="">
+<td>testgetStoreMetadataReport</td><td>Success</td><td></td><td>0.274</td>
+</tr>
+<tr valign="top" class="">
+<td>testClear</td><td>Success</td><td></td><td>0.202</td>
+</tr>
+<tr valign="top" class="">
+<td>testLookupQuiet</td><td>Success</td><td></td><td>0.807</td>
+</tr>
+<tr valign="top" class="">
+<td>testExpireObject</td><td>Success</td><td></td><td>0.204</td>
+</tr>
+<tr valign="top" class="">
+<td>testSet</td><td>Success</td><td></td><td>0.224</td>
+</tr>
+<tr valign="top" class="">
+<td>testReap</td><td>Success</td><td></td><td>0.762</td>
+</tr>
+<tr valign="top" class="">
+<td>testGetCachedObjectMetadata</td><td>Success</td><td></td><td>0.202</td>
+</tr>
+<tr valign="top" class="">
+<td>testExpireAll</td><td>Success</td><td></td><td>0.204</td>
+</tr>
+<tr valign="top" class="">
+<td>testClearQuiet</td><td>Success</td><td></td><td>0.157</td>
+</tr>
+<tr valign="top" class="">
+<td>testSetQuiet</td><td>Success</td><td></td><td>0.823</td>
+</tr>
+<tr valign="top" class="">
+<td>testLookup</td><td>Success</td><td></td><td>0.173</td>
+</tr>
+<tr valign="top" class="">
+<td>testGetQuiet</td><td>Success</td><td></td><td>0.153</td>
+</tr>
+<tr valign="top" class="">
+<td>testGet</td><td>Success</td><td></td><td>0.147</td>
+</tr>
+<tr valign="top" class="">
+<td>testShutdown</td><td>Success</td><td></td><td>0.133</td>
+</tr>
+<tr valign="top" class="">
+<td>testGetKeys</td><td>Success</td><td></td><td>0.166</td>
+</tr>
+<tr valign="top" class="">
+<td>testGetSize</td><td>Success</td><td></td><td>0.753</td>
+</tr>
+<tr valign="top" class="">
+<td>testgetStoreMetadataReport</td><td>Success</td><td></td><td>0.154</td>
+</tr>
+<tr valign="top" class="">
+<td>testClear</td><td>Success</td><td></td><td>0.124</td>
+</tr>
+<tr valign="top" class="">
+<td>testLookupQuiet</td><td>Success</td><td></td><td>0.148</td>
+</tr>
+<tr valign="top" class="">
+<td>testExpireObject</td><td>Success</td><td></td><td>0.112</td>
+</tr>
+<tr valign="top" class="">
+<td>testSet</td><td>Success</td><td></td><td>0.107</td>
+</tr>
+<tr valign="top" class="">
+<td>testReap</td><td>Success</td><td></td><td>0.684</td>
+</tr>
+<tr valign="top" class="">
+<td>testGetCachedObjectMetadata</td><td>Success</td><td></td><td>0.227</td>
+</tr>
+<tr valign="top" class="">
+<td>testExpireAll</td><td>Success</td><td></td><td>0.105</td>
+</tr>
+</table>
+<div class="Properties">
+<a href="javascript:displayProperties('mxunit.testresults');">
+                    Properties &raquo;
+                </a>
+</div>
+<p></p>
+<a href="#top">Back to top</a>
+</body>
+</html>

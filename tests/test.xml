@@ -7,15 +7,15 @@ your tests.
 <project name="coldbox.app.test" default="main" basedir=".">
 	
 	<!-- Server Properties: PLEASE CHANGE -->
-	<property name="server.url" 		value="cf9cboxdev.jfetmac" />
+	<property name="server.url" 		value="cf10cboxdev.jfetmac" />
 	<property name="server.port" 		value="80" />
 	<!-- MX Unit Locations In reference to this folder: PLEASE CHANGE -->	
-	<property name="mxunit.jar" 		value="../../../../mxunit/ant/lib/mxunit-ant.jar" />
-	<property name="mxunit.xsl" 		value="../../../../mxunit/ant/xsl" />
+	<property name="mxunit.jar" 		value="../../../mxunit/ant/lib/mxunit-ant.jar" />
+	<property name="mxunit.xsl" 		value="../../../mxunit/ant/xsl" />
 	<!-- The path to the custom runner in your resources folder from the root of your server: PLEASE CHANGE -->
-	<property name="mxunit.runner"		value="/coldbox/ApplicationTemplates/Advanced/test/resources/HttpAntRunner.cfc"/>
-	<property name="test.path"			value="/coldbox/ApplicationTemplates/Advanced/test" />
-	<property name="test.cfcpath"		value="coldbox.ApplicationTemplates.Advanced.test" />
+	<property name="mxunit.runner"		value="/codedepot/cachebox-couchbase/tests/resources/HttpAntRunner.cfc"/>
+	<property name="test.path"			value="/codedepot/cachebox-couchbase/tests/unit" />
+	<property name="test.cfcpath"		value="codedepot.cachebox-couchbase.tests.unit" />
 	<!-- Reporting Output Directories --> 
 	<property name="report.dir"  		value="test-results" />
 	<property name="junitreport.dir"  	value="${report.dir}/junitreport" />
