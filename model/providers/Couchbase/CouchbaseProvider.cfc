@@ -82,6 +82,13 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	}
 	
 	/**
+    * get the cache provider version
+    */    
+	any function getVersion() output="false" {
+		return instance.version;
+	}
+	
+	/**
     * set the cache name
     */    
 	void function setName(required name) output="false" {
