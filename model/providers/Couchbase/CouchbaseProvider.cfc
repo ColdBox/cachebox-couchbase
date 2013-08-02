@@ -23,7 +23,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			// provider version
 			version				= "1.0",
 			// Java SDK for Couchbase
-			couchBaseClient 	= "",
+			couchbaseClient 	= "",
 			// provider enable flag
 			enabled 			= false,
 			// reporting enabled flag
@@ -63,7 +63,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
             opQueueMaxBlockTime = 5000,
 	        opTimeout = 5000,
 	        timeoutExceptionThreshold = 5000,
-	        ignoreCouchBaseTimeouts = true,
+	        ignoreCouchbaseTimeouts = true,
 			bucket = "default",
 			servers = "localhost:8091", // This can be an array
 			username = "",
@@ -138,17 +138,17 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	}
 		
 	/**
-    * set the CouchBase Client
+    * set the Couchbase Client
     */
-    void function setCouchBaseClient(required any CouchBaseClient) {
-		instance.CouchBaseClient = arguments.CouchBaseClient;
+    void function setCouchbaseClient(required any CouchbaseClient) {
+		instance.CouchbaseClient = arguments.CouchbaseClient;
 	}
 		
 	/**
-    * get the CouchBase Client
+    * get the Couchbase Client
     */
-    any function getCouchBaseClient() {
-		return instance.CouchBaseClient;
+    any function getCouchbaseClient() {
+		return instance.CouchbaseClient;
 	}
 				
 	/**
@@ -186,7 +186,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		var props	= [];
 		var URIs 	= [];
     	var i = 0;
-    	var couchBaseClientClass = '';
+    	var couchbaseClientClass = '';
     	var couchbaseConnectionFactoryBuilder = '';
     	var couchbaseConnectionFactory = '';
 			
@@ -215,7 +215,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			catch(any e) {
 				e.printStackTrace();
 				instance.logger.error("Error Loading Couchbase Client Jars: #e.message# #e.detail#", e );
-				throw(message='Error Loading CouchBase Client Jars', detail=e.message & " " & e.detail);
+				throw(message='Error Loading Couchbase Client Jars', detail=e.message & " " & e.detail);
 			}		
 			
 			try{
@@ -237,7 +237,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 				couchbaseConnectionFactory = CouchbaseConnectionFactoryBuilder.buildCouchbaseConnection( URIs, config.bucket, config.password );
 		        				
 		        // Create actual client class.  
-				couchBaseClientClass = getJavaLoader().create("com.couchbase.client.CouchbaseClient");
+				couchbaseClientClass = getJavaLoader().create("com.couchbase.client.CouchbaseClient");
 			}
 			catch(any e) {
 				e.printStackTrace();
@@ -247,8 +247,8 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			
 			try{
 				// Instantiate the client with out connection factory.  This is in a separate try catch to help differentiate between
-				// Java classpath issues versus CouchBase connection issues.  
-				setCouchBaseClient( CouchBaseClientClass.init( CouchbaseConnectionFactory ) );
+				// Java classpath issues versus Couchbase connection issues.  
+				//setCouchbaseClient( CouchbaseClientClass.init( CouchbaseConnectionFactory ) );
 			}
 			catch(any e) {
 				e.printStackTrace();
@@ -268,7 +268,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * shutdown the cache
     */
     void function shutdown() output="false" {
-    	getCouchBaseClient().shutDown( 5, instance.TimeUnitClass.SECONDS );
+    	getCouchbaseClient().shutDown( 5, instance.TimeUnitClass.SECONDS );
 		instance.logger.info("CouchbaseProvider Cache: #getName()# has been shutdown.");
 	}
 	
@@ -353,7 +353,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		// The only reason I'm try/catching this is that the Java exception has an object for the 'type
 		// which makes ColdBox's error handing blow up since it tries to use the type as a string.
     	try{
-	    	local.allView 		= getCouchBaseClient().getView('CacheBox_allKeys', 'allKeys');
+	    	local.allView 		= getCouchbaseClient().getView('CacheBox_allKeys', 'allKeys');
 	    	local.query 		= getJavaLoader().create("com.couchbase.client.protocol.views.Query").init();
 	    	local.staleClass 	= getJavaLoader().create("com.couchbase.client.protocol.views.Stale");
 	    	// Just return the keys, not the docs
@@ -361,7 +361,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	    	// request fresh data
 	    	local.query.setStale( local.StaleClass.FALSE );
 	    	// query the view
-	    	local.response = getCouchBaseClient().query( local.allView, local.query );
+	    	local.response = getCouchbaseClient().query( local.allView, local.query );
 		}
 		catch(any e) {
 			// log original error.
@@ -374,7 +374,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     	if( arrayLen( local.response.getErrors() ) ){
     		// This will log only and not throw an exception
     		// PLEASE NOTE, the response received may not include all documents if one or more nodes are offline 
-	    	// and not yet failed over.  CouchBase basically sends back what docs it _can_ access and ignores the other nodes.
+	    	// and not yet failed over.  Couchbase basically sends back what docs it _can_ access and ignores the other nodes.
     		handleRowErrors( 'There was an error executing the view allKeys', local.response.getErrors() );
     	}
     	
@@ -396,10 +396,10 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     	
     	local.designDocumentName = 'CacheBox_' & arguments.viewName;
     	
-    	// CouchBase doesn't provide a way to check for DesignDocuments, so try to retrieve it and catch the error.
+    	// Couchbase doesn't provide a way to check for DesignDocuments, so try to retrieve it and catch the error.
     	// This should only error the first time and will run successfully every time after.
     	try {
-    		getCouchBaseClient().getDesignDocument( local.designDocumentName );	
+    		getCouchbaseClient().getDesignDocument( local.designDocumentName );	
     	}
     	catch('com.couchbase.client.protocol.views.InvalidViewException' e) {
     		
@@ -419,7 +419,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 				.create( "com.couchbase.client.protocol.views.ViewDesign" )
 				.init( arguments.viewName, local.mapFunction );
 			local.designDocument.getViews().add( local.viewDesign );
-			getCouchBaseClient().createDesignDoc( local.designDocument );
+			getCouchbaseClient().createDesignDoc( local.designDocument );
     		
     		// View creation and population is asynchronous so we'll wait a while until it's ready
 			local.attempts = 0;
@@ -466,7 +466,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		};
     	
     	// Get stats for this key from the returned java future
-    	local.stats = getCouchBaseClient().getKeyStats( objectKey ).get();
+    	local.stats = getCouchbaseClient().getKeyStats( objectKey ).get();
     	if( structKeyExists( local, "stats" ) ){
     		
     		// key_exptime
@@ -518,7 +518,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		
 		try {
     		// local.object will always come back as a string
-    		local.object = getCouchBaseClient().get( javacast( "string", arguments.objectKey ) );
+    		local.object = getCouchbaseClient().get( javacast( "string", arguments.objectKey ) );
 			
 			// item is no longer in cache, return null
 			if( !structKeyExists( local, "object" ) ){
@@ -548,7 +548,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		}
 		catch(any e) {
 			
-			if( isTimeoutException( e ) && getConfiguration().ignoreCouchBaseTimeouts ) {
+			if( isTimeoutException( e ) && getConfiguration().ignoreCouchbaseTimeouts ) {
 				// log it
 				instance.logger.error( "Couchbase timeout exception detected: #e.message# #e.detail#", e );
 				// Return nothing as though it wasn't even found in the cache
@@ -649,18 +649,18 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     		
 			// You can pass in a net.spy.memcached.transcoders.Transcoder to override the default
 			if( structKeyExists( arguments, 'extra' ) && structKeyExists( arguments.extra, 'transcoder' ) ){
-				future = getCouchBaseClient()
+				future = getCouchbaseClient()
 					.set( javaCast( "string", arguments.objectKey ), javaCast( "int", arguments.timeout*60 ), sElement, extra.transcoder );
 			}
 			else {
-				future = getCouchBaseClient()
+				future = getCouchbaseClient()
 					.set( javaCast( "string", arguments.objectKey ), javaCast( "int",arguments.timeout*60 ), sElement );
 			}
 		
 		}
 		catch(any e) {
 			
-			if( isTimeoutException( e ) && getConfiguration().ignoreCouchBaseTimeouts) {
+			if( isTimeoutException( e ) && getConfiguration().ignoreCouchbaseTimeouts) {
 				// log it
 				instance.logger.error( "Couchbase timeout exception detected: #e.message# #e.detail#", e );
 				// return nothing
@@ -699,7 +699,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		// If flush is not enabled for this bucket, no error will be thrown.  The call will simply return and nothing will happen.
 		// Be very careful calling this.  It is an intensive asynch operation and the cache won't receive any new items until the flush
 		// is finished which might take a few minutes.
-		var future = getCouchBaseClient().flush();		
+		var future = getCouchbaseClient().flush();		
 				 
 		var iData = {
 			cache			= this,
@@ -719,7 +719,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		arguments.objectKey = lcase( arguments.objectKey );
 		
 		// Delete from couchbase
-		var future = getCouchBaseClient().delete( arguments.objectKey );
+		var future = getCouchbaseClient().delete( arguments.objectKey );
 		
 		//ColdBox events
 		var iData = { 
