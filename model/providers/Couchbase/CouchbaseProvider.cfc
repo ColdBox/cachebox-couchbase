@@ -627,13 +627,14 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			timeout = arguments.timeout,
 			metadata = ( structKeyExists( arguments.extra, "metadata" ) ? arguments.extra.metadata : {} ),
 			isSimple = isSimpleValue( arguments.object ),
-			data = ""
+			data = arguments.object
 		};
 		
 		// Do we need to serialize incoming obj
-		if( sElement.isSimple ){
+		if( !sElement.isSimple ){
 			sElement.data = instance.converter.serializeObject( arguments.object );
 		}
+		
 		// Serialize element to JSON
 		sElement = serializeJSON( sElement );
 

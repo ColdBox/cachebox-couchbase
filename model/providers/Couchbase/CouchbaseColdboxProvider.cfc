@@ -13,15 +13,18 @@ This provider is for use in a ColdBox application.
 */
 component serializable="false" extends="CouchbaseProvider" implements="coldbox.system.cache.IColdboxApplicationCache"{
 
+	/**
+	* Constructor
+	*/
 	CouchbaseColdboxProvider function init() output=false{
 		super.init();
 		
 		// Cache Prefixes
-		this.VIEW_CACHEKEY_PREFIX 	= "Couchbase_view-";
-		this.EVENT_CACHEKEY_PREFIX 	= "Couchbase_event-";
+		this.VIEW_CACHEKEY_PREFIX 	= "couchbase_view-";
+		this.EVENT_CACHEKEY_PREFIX 	= "couchbase_event-";
 		
 		// URL Facade Utility
-		instance.eventURLFacade		= CreateObject("component","coldbox.system.cache.util.EventURLFacade").init(this);
+		instance.eventURLFacade		= CreateObject("component","coldbox.system.cache.util.EventURLFacade").init( this );
 		
 		return this;
 	}
@@ -56,7 +59,6 @@ component serializable="false" extends="CouchbaseProvider" implements="coldbox.s
 		else{
 			instance.elementCleaner.clearAllEvents();
 		}
-			
 	}
 	
 	/**
@@ -74,7 +76,6 @@ component serializable="false" extends="CouchbaseProvider" implements="coldbox.s
 		else{
 			instance.elementCleaner.clearAllViews();
 		}
-		
 	}
 	
 	/**

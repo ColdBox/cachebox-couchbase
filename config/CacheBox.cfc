@@ -36,18 +36,17 @@
 	        // Register all the custom named caches you like here
 	        caches = { 
 		        template = {
-	                provider = "coldbox.system.cache.providers.CacheBoxColdBoxProvider",
-	                properties = {
-	                    objectDefaultTimeout = 120,
-	                    objectDefaultLastAccessTimeout = 30,
-	                    useLastAccessTimeouts = true,
-	                    reapFrequency = 2,
-	                    freeMemoryPercentageThreshold = 0,
-	                    evictionPolicy = "LRU",
-	                    evictCount = 2,
-	                    maxObjects = 300,
-	                    objectStore = "ConcurrentSoftReferenceStore" //memory sensitive
-	                }
+	                provider="couchbaseApp.model.providers.Couchbase.CouchbaseColdboxProvider",
+			       properties = {
+	                    objectDefaultTimeout = 15,
+	                    opQueueMaxBlockTime = 5000,
+				        opTimeout = 5000,
+				        timeoutExceptionThreshold = 5000,
+				        ignoreCouchBaseTimeouts = true,				
+			        	bucket="default",
+			        	password="",
+			        	servers="127.0.0.1:8091"
+			        }
 	            },
 			   couchBase = {
 			        provider="couchbaseApp.model.providers.Couchbase.CouchbaseProvider",

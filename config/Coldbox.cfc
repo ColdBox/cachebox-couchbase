@@ -19,7 +19,7 @@ component{
 				
 			//Application Aspects
 			handlerCaching 			= false,
-			eventCaching			= false
+			eventCaching			= true
 		};
 		
 		//Register interceptors as an array, we need order
