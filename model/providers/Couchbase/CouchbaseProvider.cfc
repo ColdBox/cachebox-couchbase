@@ -599,7 +599,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			cacheObjectLastAccessTimeout = arguments.lastAccessTimeout,
 			couchbaseFuture 	= future
 		};		
-		getEventManager().processState("afterCacheElementInsert",iData);
+		getEventManager().processState( state="afterCacheElementInsert", interceptData=iData, async=true );
 		
 		return future;
 	}	
@@ -719,7 +719,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			cacheObjectKey 		= arguments.objectKey,
 			couchbaseFuture		= future
 		};		
-		getEventManager().processState( "afterCacheElementRemoved", iData );
+		getEventManager().processState( state="afterCacheElementRemoved", interceptData=iData, async=true );
 		
 		return future;
 	}
