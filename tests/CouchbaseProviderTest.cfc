@@ -91,16 +91,14 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		testGet();
 	}
 	
-	/*
-	Flush is too slow and still asynch internally.  Getting timeouts and affecting other tests
 	function testGetSize(){
-		cache.getObjectStore().set( "unitTestKey", 500, 'Testing' );
-		assertTrue( isNumeric( cache.getSize() ) );
-		future = cache.getObjectStore().flush();
+		currentSize = cache.getSize();
+		future = cache.getObjectStore().set( "unitTestKey#createUUID()#", 500, 'Testing' );
 		future.get();
-		assertEquals( 0, cache.getSize() );
+		
+		assertTrue( isNumeric( cache.getSize() ) );
+		assertTrue( currentSize lt cache.getSize() );
 	}
-	*/
 	
 	function testExpireObject(){
 		// test not valid object
@@ -112,15 +110,11 @@ component extends="coldbox.system.testing.BaseTestCase"{
 		assertTrue( isNull( results ) );
 	}
 	
-	/*
-	Flush is too slow and still asynch internally.  Getting timeouts and affecting other tests
 	function testExpireAll(){
 		cache.getObjectStore().set( "unitTestKey", 500, 'Testing' );
 		cache.expireAll();
-		// wait for async operation
-		sleep( 1500 );
-		assertEquals( 0, cache.getSize() );
-	}*/
+		// no asserts, just let it run
+	}
 	
 	function testClear(){
 		cache.getObjectStore().set( "unitTestKey", 500, 'Testing' );
