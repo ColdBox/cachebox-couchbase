@@ -44,8 +44,13 @@ component serializable="false" extends="CouchbaseProvider" implements="coldbox.s
 	// Get Event URL Facade Tool
 	any function getEventURLFacade() output=false{ return instance.eventURLFacade; }
 	
+	// TODO: override set and detect cached view or event based on prefix and 
+	// add flag into extra.metadata.isColdBoxView or extra.metadata.isColdBoxEvent
+	// to be used in the two methods below. 
+	
 	/**
 	* Clear all events
+	* TODO: Change this to use Couchbase view based on metastats
 	*/
 	void function clearAllEvents(async=false) output=false{
 		var threadName = "clearAllEvents_#replace(instance.uuidHelper.randomUUID(),"-","","all")#";
@@ -63,6 +68,7 @@ component serializable="false" extends="CouchbaseProvider" implements="coldbox.s
 	
 	/**
 	* Clear all views
+	* TODO: Change this to use Couchbase view based on metastats
 	*/
 	void function clearAllViews(async=false) output=false{
 		var threadName = "clearAllViews_#replace(instance.uuidHelper.randomUUID(),"-","","all")#";
