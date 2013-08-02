@@ -248,7 +248,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			try{
 				// Instantiate the client with out connection factory.  This is in a separate try catch to help differentiate between
 				// Java classpath issues versus Couchbase connection issues.  
-				//setCouchbaseClient( CouchbaseClientClass.init( CouchbaseConnectionFactory ) );
+				setCouchbaseClient( CouchbaseClientClass.init( CouchbaseConnectionFactory ) );
 			}
 			catch(any e) {
 				e.printStackTrace();
