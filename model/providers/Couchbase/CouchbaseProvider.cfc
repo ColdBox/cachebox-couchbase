@@ -335,9 +335,9 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 				LastAccessed = "LastAccessed",
 				isExpired = "isExpired",
 				timeout = "timeout",
-				lastAccessTimeout = "NOT_SUPPORTED",
-				hits = "NOT_SUPPORTED",
-				created = "NOT_SUPPORTED"
+				lastAccessTimeout = "lastAccessTimeout",
+				hits = "hits",
+				created = "createddate"
 			};
 		return keymap;
 	}
@@ -461,8 +461,15 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			timeExpires = "",
 			isExpired = 0,
 			isDirty = 0,
+			isSimple = 1,
+			createdDate = "",
+			metadata = {},
 			cas = "",
-			dataAge = 0
+			dataAge = 0,
+			// We don't track these two, but I need a dummy values
+			// for the CacheBox item report.
+			lastAccessTimeout = 0,
+			hits = 0
 		};
     	
     	// Get stats for this key from the returned java future
@@ -471,8 +478,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     		
     		// key_exptime
     		if( structKeyExists( local.stats, "key_exptime" ) and isNumeric( local.stats[ "key_exptime" ] ) ){
-    			local.keyStats.timeExpires = dateAdd("s", local.stats[ "key_exptime" ], dateConvert( "utc2Local", "January 1 1970 00:00" ) );
-    			local.keyStats.timeout = dateDiff( "n", now(), local.keyStats.timeExpires ); 
+    			local.keyStats.timeExpires = dateAdd("s", local.stats[ "key_exptime" ], dateConvert( "utc2Local", "January 1 1970 00:00" ) ); 
     		}
     		// key_last_modification_time
     		if( structKeyExists( local.stats, "key_last_modification_time" ) and isNumeric( local.stats[ "key_last_modification_time" ] ) ){
@@ -496,6 +502,39 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     		}
     		
     	}
+    	
+    	// Add in metastats that we manually store in the JSON document
+   		local.object = getCouchbaseClient().get( javacast( "string", arguments.objectKey ) );
+		
+		// item is no longer in cache, or it's not a JSON doc.  No metastats for us 
+		if( !structKeyExists( local, "object" ) || !isJSON( local.object ) ){
+    		return local.keyStats;
+		}
+				
+		// inflate our object from JSON
+		local.inflatedElement = deserializeJSON( local.object );
+
+		// Simple values like 123 might appear to be JSON, but not a struct
+		if(!isStruct(local.inflatedElement)) {
+    		return local.keyStats;
+		}
+				
+		// createdDate
+		if( structKeyExists( local.inflatedElement, "createdDate" ) ){
+   			local.keyStats.createdDate = local.inflatedElement.createdDate;
+		}
+		// timeout
+		if( structKeyExists( local.inflatedElement, "timeout" ) ){
+   			local.keyStats.timeout = local.inflatedElement.timeout;
+		}
+		// metadata
+		if( structKeyExists( local.inflatedElement, "metadata" ) ){
+   			local.keyStats.metadata = local.inflatedElement.metadata;
+		}
+		// isSimple
+		if( structKeyExists( local.inflatedElement, "isSimple" ) ){
+   			local.keyStats.isSimple = local.inflatedElement.isSimple;
+		}
     	
     	return local.keyStats;
 	}
@@ -532,6 +571,12 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			
 			// inflate our object from JSON
 			local.inflatedElement = deserializeJSON( local.object );
+			
+			
+			// Simple values like 123 might appear to be JSON, but not a struct
+			if(!isStruct(local.inflatedElement)) {
+				return local.object;
+			}
 			
 			// Is simple or not?
 			if( structKeyExists( local.inflatedElement, "isSimple" ) and local.inflatedElement.isSimple ){
