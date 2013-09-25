@@ -668,6 +668,11 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 		// "quiet" "not implemented by Couchbase yet
 		var future = "";
 		
+		
+		if( NOT len(arguments.timeout) OR NOT isNumeric(arguments.timeout) ){
+			arguments.timeout = instance.configuration.objectDefaultTimeout;
+		}
+		
 		// create storage element
 		var sElement = {
 			createdDate = dateformat( now(), "mm/dd/yyyy") & " " & timeformat( now(), "full" ),

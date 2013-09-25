@@ -8,6 +8,6 @@ component {
 	}
 	
 	function viewTest(event,rc,prc){
-		return renderView(view="main/viewTest", cache=true, cacheTimeout=5);
+		return renderView(view="main/viewTest", cache=true);
 	}
 }

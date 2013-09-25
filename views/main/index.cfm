@@ -50,6 +50,9 @@
 		#key#: <cfdump expand="false" var="#cb.get( key )#">
 	</cfloop>
 	
+	<cfset runEvent("main.eventTest")>	
+	<cfset runEvent("main.viewTest")>
+	
 	<!--- This works well, but be wary of a monster dump if you have thousands of documents in the bucket. --->
 	<!---<cfdump var="#cb.getKeys()#">--->
 				
