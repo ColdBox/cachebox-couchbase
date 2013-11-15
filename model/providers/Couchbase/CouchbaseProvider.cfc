@@ -396,7 +396,7 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     	try {
     		getCouchbaseClient().getDesignDocument( local.designDocumentName );	
     	}
-    	catch('com.couchbase.client.protocol.views.InvalidViewException' e) {
+    	catch(Any e) {
     		
     		// Create it    		
 			local.designDocument = getJavaLoader()
