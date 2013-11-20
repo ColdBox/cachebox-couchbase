@@ -199,12 +199,12 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 				// Load up javaLoader
 				loadJavaLoader( [
 					'#config.jarPath#commons-codec-1.5.jar',
-					'#config.jarPath#couchbase-client-1.1.7.jar',
+					'#config.jarPath#couchbase-client-1.2.2.jar',
 					'#config.jarPath#httpcore-4.1.1.jar',
 					'#config.jarPath#httpcore-nio-4.1.1.jar',
 					'#config.jarPath#jettison-1.1.jar',
 					'#config.jarPath#netty-3.5.5.Final.jar',
-					'#config.jarPath#spymemcached-2.9.0.jar'
+					'#config.jarPath#spymemcached-2.10.2.jar'
 				]);
 			}
 			catch(any e) {
