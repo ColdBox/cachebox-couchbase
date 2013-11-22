@@ -876,7 +876,12 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	}
 	
 	private boolean function isTimeoutException(required any exception){
-    	return (exception.type == 'net.spy.memcached.OperationTimeoutException' || exception.message == 'Exception waiting for value' || exception.message == 'Interrupted waiting for value');
+    	return (
+    		exception.type == 'net.spy.memcached.OperationTimeoutException' 
+    		|| exception.message == 'Exception waiting for value' 
+    		|| exception.message == 'Interrupted waiting for value' 
+    		|| exception.message == 'Cancelled'
+    	);
 	}
 	
 	/**
