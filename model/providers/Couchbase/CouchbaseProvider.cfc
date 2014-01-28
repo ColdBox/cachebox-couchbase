@@ -534,6 +534,40 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     	return local.keyStats;
 	}
 	
+	
+	/**
+    * get an object in cache, returns null if not found.  Doesn't do any deserialization so you will get the JSON as a string exactly as stored in Couchbase.
+    * lastAccessTimeout.hint Not used in this provider
+    */
+    any function getJSON(required any objectKey) {
+		// lower case the keys for case insensitivity
+		arguments.objectKey = lcase( arguments.objectKey );
+		
+		try {
+    		// local.object will always come back as a string
+    		local.object = getCouchbaseClient().get( javacast( "string", arguments.objectKey ) );
+			
+			// item is no longer in cache, return null
+			if( !structKeyExists( local, "object" ) ){
+				return;
+			}
+			
+			return local.object;
+		}
+		catch(any e) {
+			
+			if( isTimeoutException( e ) && getConfiguration().ignoreCouchbaseTimeouts ) {
+				// log it
+				instance.logger.error( "Couchbase timeout exception detected: #e.message# #e.detail#", e );
+				// Return nothing as though it wasn't even found in the cache
+				return;
+			}
+			
+			// For any other type of exception, rethrow.
+			rethrow;
+		}
+	}
+	
 	/**
     * get an item from cache, returns null if not found.
     * @tested
@@ -625,6 +659,21 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 	}
 	
 	/**
+    * set an object in cache and returns an object future if possible.  Doesn't do any serialization so you must pass in an already-serialized JSON string.
+    * lastAccessTimeout.hint Not used in this provider
+    */
+    any function setJSON(required string objectKey,
+					 required any object,
+					 any timeout=instance.configuration.objectDefaultTimeout,
+					 any lastAccessTimeout="0", // Not used for this provider
+					 any extra=structNew()) {
+					 	 
+		arguments.extra.skipSerialization = true;
+		
+		return set( argumentCollection = arguments );
+	}
+	
+	/**
     * set an object in cache and returns an object future if possible
     * lastAccessTimeout.hint Not used in this provider
     * @tested
@@ -673,22 +722,26 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			arguments.timeout = instance.configuration.objectDefaultTimeout;
 		}
 		
-		// create storage element
-		var sElement = {
-			createdDate = dateformat( now(), "mm/dd/yyyy") & " " & timeformat( now(), "full" ),
-			timeout = arguments.timeout,
-			metadata = ( structKeyExists( arguments.extra, "metadata" ) ? arguments.extra.metadata : {} ),
-			isSimple = isSimpleValue( arguments.object ),
-			data = arguments.object
-		};
-		
-		// Do we need to serialize incoming obj
-		if( !sElement.isSimple ){
-			sElement.data = instance.converter.serializeObject( arguments.object );
+		if( structKeyExists( arguments.extra, 'skipSerialization' ) && arguments.extra.skipSerialization ) {
+			var sElement = arguments.object;
+		} else {
+			// create storage element
+			var sElement = {
+				createdDate = dateformat( now(), "mm/dd/yyyy") & " " & timeformat( now(), "full" ),
+				timeout = arguments.timeout,
+				metadata = ( structKeyExists( arguments.extra, "metadata" ) ? arguments.extra.metadata : {} ),
+				isSimple = isSimpleValue( arguments.object ),
+				data = arguments.object
+			};
+			
+			// Do we need to serialize incoming obj
+			if( !sElement.isSimple ){
+				sElement.data = instance.converter.serializeObject( arguments.object );
+			}
+			
+			// Serialize element to JSON
+			sElement = serializeJSON( sElement );
 		}
-		
-		// Serialize element to JSON
-		sElement = serializeJSON( sElement );
 
     	try {
     		
