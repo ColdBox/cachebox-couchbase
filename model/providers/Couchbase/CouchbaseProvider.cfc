@@ -633,6 +633,39 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
 			rethrow;
 		}
 	}
+
+
+    /**
+    * Tries to get an object from the cache, if not found, it calls the 'produce' closure to produce the data and cache it.
+    * @objectKey The object cache key
+    * @produce The closure/udf to produce the data if not found
+    * @timeout The timeout to use on the object (if any, provider specific)
+    * @extra A map of name-value pairs to use as extra arguments to pass to a providers set operation
+    */
+    any function getOrSet(required any objectKey, required any produce, timeout='', extra={} ) output="false" {
+			var refLocal = {
+				object = get( arguments.objectKey )
+			};
+			// Verify if it exists? if so, return it.
+			if( structKeyExists( refLocal, "object" ) ){ return refLocal.object; }
+			// else, produce it
+			lock name="CouchbaseProvider.GetOrSet.#instance.cacheID#.#arguments.objectKey#" type="exclusive" timeout="#instance.lockTimeout#" throwonTimeout="true" {
+				// double lock
+				refLocal.object = get( arguments.objectKey );
+				if( not structKeyExists( refLocal, "object" ) ){
+					// produce it
+					refLocal.object = arguments.produce();
+					// store it
+					set( objectKey=arguments.objectKey, 
+						 object=refLocal.object, 
+						 timeout=arguments.timeout,
+						 extra=arguments.extra );
+				}
+
+			}
+		
+		return refLocal.object;
+	}
 	
 	/**
     * Not implemented by this cache
