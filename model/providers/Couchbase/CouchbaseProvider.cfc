@@ -640,16 +640,17 @@ component serializable="false" implements="coldbox.system.cache.ICacheProvider"{
     * @objectKey The object cache key
     * @produce The closure/udf to produce the data if not found
     * @timeout The timeout to use on the object (if any, provider specific)
+    * @locktimeout The locking timeout to use on the object (if any, provider specific)
     * @extra A map of name-value pairs to use as extra arguments to pass to a providers set operation
     */
-    any function getOrSet(required any objectKey, required any produce, timeout='', extra={} ) output="false" {
+    any function getOrSet(required any objectKey, required any produce, timeout='', locktimeout=15, extra={} ) output="false" {
 			var refLocal = {
 				object = get( arguments.objectKey )
 			};
 			// Verify if it exists? if so, return it.
 			if( structKeyExists( refLocal, "object" ) ){ return refLocal.object; }
 			// else, produce it
-			lock name="CouchbaseProvider.GetOrSet.#instance.cacheID#.#arguments.objectKey#" type="exclusive" timeout="#instance.lockTimeout#" throwonTimeout="true" {
+			lock name="CouchbaseProvider.GetOrSet.#instance.cacheID#.#arguments.objectKey#" type="exclusive" timeout="#arguments.locktimeout#" throwonTimeout="true" {
 				// double lock
 				refLocal.object = get( arguments.objectKey );
 				if( not structKeyExists( refLocal, "object" ) ){
